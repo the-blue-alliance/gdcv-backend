@@ -31,13 +31,13 @@ Vagrant.configure("2") do |config|
 
     # Start the GDCV server
     gdcv.vm.provision "shell",
-      inline: "cd /gdcv && ./scripts/bootstrap-dev-gdcv.sh",
+      inline: "./scripts/bootstrap-dev-gdcv.sh",
       privileged: false,
       run: "always"
 
     # Bootstrap local mysql db
     gdcv.vm.provision "shell",
-      inline: "cd /gdcv && ./scripts/setup-mysql.sh",
+      inline: "./scripts/setup-mysql.sh",
       privileged: false
   end
 
