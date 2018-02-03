@@ -1,0 +1,10 @@
+thriftpy
+google-cloud-pubsub
+sqlalchemy
+mysqlclient
+pytesseract
+pillow
+imutils
+livescore
+pytube
+livestreamer
