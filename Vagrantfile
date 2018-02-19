@@ -6,7 +6,7 @@ Vagrant.require_version "> 1.8.1"
 Vagrant.configure("2") do |config|
   config.vm.define "gdcv" do |gdcv|
     # Sync the TBA code directory
-    gdcv.vm.synced_folder "./gdcv", "/gdcv",
+    gdcv.vm.synced_folder "./", "/gdcv",
       type: "rsync",
       owner: "root",
       group: "root",
@@ -31,13 +31,13 @@ Vagrant.configure("2") do |config|
 
     # Start the GDCV server
     gdcv.vm.provision "shell",
-      inline: "./scripts/bootstrap-dev-gdcv.sh",
+      inline: "cd /gdcv && ./scripts/bootstrap-dev-gdcv.sh",
       privileged: false,
       run: "always"
 
     # Bootstrap local mysql db
     gdcv.vm.provision "shell",
-      inline: "./scripts/setup-mysql.sh",
+      inline: "cd /gdcv && ./scripts/setup-mysql.sh",
       privileged: false
   end
 

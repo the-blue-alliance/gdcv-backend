@@ -10,6 +10,7 @@ opencv_version=$1
 echo "Installing opencv $opencv_version"
 
 # Install dependencies
+apt-get update
 apt-get install -y build-essential
 apt-get install -y cmake git pkg-config libavcodec-dev libavformat-dev libswscale-dev ffmpeg
 apt-get install -y python3-numpy libtbb2 libtbb-dev libjpeg-dev libpng-dev libtiff-dev libjasper-dev libdc1394-22-dev

@@ -5,7 +5,7 @@ from thriftpy.rpc import make_client
 
 def main():
     print("Fetching status of local gdcv server...")
-    gdcv_thrift = thriftpy.load('gdcv/if/gdcv.thrift', module_name='gdcv_thrift')
+    gdcv_thrift = thriftpy.load('if/gdcv.thrift', module_name='gdcv_thrift')
     client = make_client(gdcv_thrift.FrcRealtimeScoringService, '127.0.0.1', 6000)
 
     print("{} v{} is {}, since {}".format(
