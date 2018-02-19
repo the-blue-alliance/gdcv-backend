@@ -24,8 +24,6 @@ class MediaProvider(object):
         '''
         video_path = self.yt_video_processor.download_video(video_id)
         frame_paths = self.yt_video_processor.extract_frames(
-            video_id, video_path, save_every_n_frames)
-        for frame_path in frame_paths:
-            frame_queue.put(frame_path)
+            video_id, video_path, frame_queue, save_every_n_frames)
 
         logging.info("Frame queue has {} items".format(frame_queue.qsize()))

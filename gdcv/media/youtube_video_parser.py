@@ -4,6 +4,7 @@ import os
 import shutil
 import time
 from pytube import YouTube
+from queue import Queue
 
 class YouTubeVideoParser(object):
     '''
@@ -12,8 +13,6 @@ class YouTubeVideoParser(object):
 
     YOUTUBE_URL_FORMAT = 'https://www.youtube.com/watch?v={}'
     DOWNLOAD_DIR = '/tmp'
-    FRAME_DIR_FORMAT = '{}_frames'
-    FRAME_FORMAT = '{}.jpg'
 
     def __init__(self):
         pass
@@ -36,6 +35,7 @@ class YouTubeVideoParser(object):
     def extract_frames(self,
                        video_id: str,
                        filepath: str,
+                       frame_queue: Queue,
                        save_every_n: int = 5):
         logging.info('Extracting frames from {}'.format(filepath))
         vidcap = cv2.VideoCapture(filepath)
@@ -45,28 +45,16 @@ class YouTubeVideoParser(object):
             return None
         count = 0
         success = True
-        frame_dir = self.FRAME_DIR_FORMAT.format(video_id)
-        frame_path = '{}/{}'.format(self.DOWNLOAD_DIR, frame_dir)
-        logging.debug('Creating {} to store video frames'.format(frame_path))
-        if os.path.exists(frame_path):
-            logging.info('Removing existing directory: {}'.format(frame_path))
-            shutil.rmtree(frame_path)
 
-        os.mkdir(frame_path)
         frame_count = int(vidcap.get(cv2.CAP_PROP_FRAME_COUNT)) - 1
         logging.info("Video has {} frames".format(frame_count))
         time_start = time.time()
-        frames = []
         while vidcap.isOpened():
             ret, image = vidcap.read()
             if not ret:
                 logging.warning("Failed to read frame from video file")
             if count % save_every_n == 0:
-                image_name = self.FRAME_FORMAT.format(count // save_every_n)
-                image_path = '{}/{}'.format(frame_path, image_name)
-                logging.debug('Writing frame to {}'.format(image_path))
-                cv2.imwrite(image_path, image)
-                frames.append(image_path)
+                frame_queue.put(image)
             count += 1
             if (count == frame_count):
                 time_end = time.time()
@@ -74,6 +62,3 @@ class YouTubeVideoParser(object):
 
         extraction_time = time_end - time_start
         logging.info("Frame extraction took {} seconds".format(extraction_time))
-        logging.info("Removing video file: {}".format(filepath))
-        os.remove(filepath)
-        return frames

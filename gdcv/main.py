@@ -6,6 +6,7 @@ from cv_provider import CvProvider
 from db_provider import DbProvider
 from frc_realtime_scoring_service import FrcRealtimeScoringService
 from frc_realtime_worker import FrcRealtimeWorker
+from media.media_provider import MediaProvider
 from metadata_provider import MetadataProvider
 from pubsub_provider import PubSubProvider
 
@@ -29,6 +30,7 @@ def run_pubsub_subscriber(pubsub: PubSubProvider):
 def main():
     logging.info("Starting gdcv application...")
     metadata_provider = MetadataProvider()
+    media_provider = MediaProvider()
     project_id = metadata_provider.get('project-id')
     pubsub_topic = metadata_provider.get('pubsub-topic-id')
     pubsub_provider = PubSubProvider(project_id, pubsub_topic)
@@ -39,7 +41,8 @@ def main():
     thrift_service = FrcRealtimeScoringService(metadata_provider,
                                                pubsub_provider,
                                                db_provider,
-                                               cv_provider)
+                                               cv_provider,
+                                               media_provider)
     cv_worker = FrcRealtimeWorker()
 
     # Kick off threads
