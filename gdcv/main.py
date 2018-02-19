@@ -2,6 +2,7 @@ import logging
 import threading
 import time
 
+from apiv3_provider import ApiV3Provider
 from cv_provider import CvProvider
 from db_provider import DbProvider
 from frc_realtime_scoring_service import FrcRealtimeScoringService
@@ -30,6 +31,7 @@ def run_pubsub_subscriber(pubsub: PubSubProvider):
 def main():
     logging.info("Starting gdcv application...")
     metadata_provider = MetadataProvider()
+    apiv3_provider = ApiV3Provider(metadata_provider)
     media_provider = MediaProvider()
     project_id = metadata_provider.get('project-id')
     pubsub_topic = metadata_provider.get('pubsub-topic-id')
@@ -42,7 +44,8 @@ def main():
                                                pubsub_provider,
                                                db_provider,
                                                cv_provider,
-                                               media_provider)
+                                               media_provider,
+                                               apiv3_provider)
     cv_worker = FrcRealtimeWorker()
 
     # Kick off threads

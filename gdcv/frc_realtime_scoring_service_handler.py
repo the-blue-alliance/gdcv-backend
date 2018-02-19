@@ -1,7 +1,9 @@
 import logging
 import time
 
+from apiv3_provider import ApiV3Provider
 from cv_provider import CvProvider
+from datetime import datetime
 from db.match_state_2017 import MatchState2017
 from db.test import Test
 from db_provider import DbProvider
@@ -13,7 +15,7 @@ from queue import Queue
 class FrcRealtimeScoringServiceHandler(object):
     def __init__(self, version: str, thrift, metadata: MetadataProvider,
                  pubsub: PubSubProvider, db: DbProvider, cv: CvProvider,
-                 media: MediaProvider):
+                 media: MediaProvider, apiv3: ApiV3Provider):
         self.alive = int(time.time())
         self.counters = {}
         self.version = version
@@ -23,6 +25,7 @@ class FrcRealtimeScoringServiceHandler(object):
         self.db = db
         self.cv = cv
         self.media = media
+        self.apiv3 = apiv3
 
     def getName(self):
         logging.debug("getName() called")
@@ -42,18 +45,28 @@ class FrcRealtimeScoringServiceHandler(object):
 
     def processYoutubeVideo(self, req):
         logging.debug("processYoutubeVideo() called for {}".format(req))
+        resp = self.thrift.ProcessYoutubeVideoResp()
         with self.db.session() as session:
             logging.info("clearing all 2017 match data")
             session.query(MatchState2017).delete()
+        logging.info("Loading data for match {}".format(req.matchKey))
+        match = self.apiv3.fetch_match_details(req.matchKey)
+        if not match['actual_time']:
+            logging.error("Unable to find actual_time for match")
+            resp.success = False
+            resp.message = "Unable to find actual_time for match"
+            return resp
+        start_time = datetime.utcfromtimestamp(match['actual_time'])
+        logging.info("Match started at {} UTC".format(start_time))
         frame_queue = Queue()
         logging.info("Processing video id {}".format(req.videoKey))
         self.media.fetch_youtube_video(req.videoKey, frame_queue, 500)
-        db_rows = self.cv.process_frame_queue(req.year, req.matchKey, frame_queue)
+        db_rows = self.cv.process_frame_queue(req.year, req.matchKey,
+                                              start_time, frame_queue)
         logging.info("Inserting {} rows into the DB".format(len(db_rows)))
         with self.db.session() as session:
             for row in db_rows:
                 session.add(row)
-        resp = self.thrift.ProcessYoutubeVideoResp()
         resp.success = True
         resp.message = "success!"
         return resp

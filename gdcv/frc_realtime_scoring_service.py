@@ -1,6 +1,7 @@
 import logging
 import thriftpy
 
+from apiv3_provider import ApiV3Provider
 from cv_provider import CvProvider
 from db_provider import DbProvider
 from frc_realtime_scoring_service_handler import FrcRealtimeScoringServiceHandler
@@ -16,7 +17,8 @@ class FrcRealtimeScoringService(object):
     BIND_PORT = 6000
 
     def __init__(self, metadata: MetadataProvider, pubsub: PubSubProvider,
-                 db: DbProvider, cv: CvProvider, media: MediaProvider):
+                 db: DbProvider, cv: CvProvider, media: MediaProvider,
+                 apiv3: ApiV3Provider):
         logging.info("Creating gdcv thrift handler...")
         gdcv_thrift = thriftpy.load(
             'if/gdcv.thrift', module_name='gdcv_thrift')
@@ -28,6 +30,7 @@ class FrcRealtimeScoringService(object):
             db=db,
             cv=cv,
             media=media,
+            apiv3=apiv3,
         )
         self.server = make_server(
             gdcv_thrift.FrcRealtimeScoringService,

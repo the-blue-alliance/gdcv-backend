@@ -1,5 +1,5 @@
 from db_provider import DbBase
-from sqlalchemy import Column, String, Integer, PrimaryKeyConstraint
+from sqlalchemy import Column, String, Integer, BigInteger, PrimaryKeyConstraint
 
 class MatchState2017(DbBase):
 
@@ -10,7 +10,7 @@ class MatchState2017(DbBase):
     event_key = Column(String(16), nullable=False)  # Like 2017nyny
     match_id = Column(String(16), nullable=False)  # Like qm1
     play = Column(Integer, nullable=False)  # Accounts for replays
-    wall_time = Column(Integer, nullable=False)  # UTC
+    wall_time = Column(BigInteger, nullable=False)
     match_time = Column(Integer)  # Number of seconds remaining
 
     red_score = Column(Integer)

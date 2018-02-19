@@ -54,7 +54,8 @@ class YouTubeVideoParser(object):
             if not ret:
                 logging.warning("Failed to read frame from video file")
             if count % save_every_n == 0:
-                frame_queue.put(image)
+                frame_time = int(vidcap.get(cv2.CAP_PROP_POS_MSEC))  # in msec
+                frame_queue.put((image, frame_time))
             count += 1
             if (count == frame_count):
                 time_end = time.time()
