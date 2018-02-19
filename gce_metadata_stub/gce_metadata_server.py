@@ -61,7 +61,7 @@
 # Simply make an @app.route()  for the path and either use the gcloud wrapper or hardcode the response you're interested in
 
 from flask import Flask
-from flask import request, Response, render_template, jsonify
+from flask import abort, request, Response, render_template, jsonify
 from werkzeug.wrappers import Request
 from jinja2 import Template, Environment, FileSystemLoader
 import json
@@ -274,10 +274,7 @@ def getCustomMetadata(k):
           custom_attributes = json.load(f)
       v = custom_attributes[k]
     except KeyError:
-      resp.headers['Content-Type'] = 'text/html; charset=UTF-8'
-      t = Template('''<p>The requested URL <code>{{ err_path }}</code> was not found on this server.
-         <ins>Thats all we know.Thats all we know.</ins>''')
-      return str(t.render(err_path=request.path))
+        abort(404)
     return v
 
 # Optional method to initialize the script with your projects *live* metadata key-value pairs
