@@ -23,16 +23,15 @@ echo "Clearing old log files..."
 rm -f $worker_log
 rm -f $metadata_log
 rm -f $pubsub_log
-
-echo "Making sure mysql is running..."
-service mysql start || echo "Unable to start mysql, try running `service mysql start` in the container"
+rm -f $sql_log
 
 echo "Starting GDCV server in new tmux session"
 tmux new-session -d -s $session
 tmux new-window -t "$session:1" -n cv-worker "./scripts/shim-dev-worker.sh 2>&1 | tee $worker_log; read"
 tmux new-window -t "$session:2" -n gce-metadata "python3 ./gce_metadata_stub/gce_metadata_server.py -p 80 2>&1 | tee $metadata_log; read"
 tmux new-window -t "$session:3" -n pubsub "gcloud beta emulators pubsub start 2>&1 | tee $pubsub_log"
-tmux select-window -t "$session:0"
+tmux new-window -t "$session:4" -n sql "./scripts/start-mysql.sh 2>&1 | tee $sql_log"
+tmux select-window -t "$session:1"
 
 tmux list-sessions
 tmux list-windows
