@@ -3,6 +3,7 @@ import datetime
 import json
 import logging
 from db.match_state_2017 import MatchState2017
+from db.match_state_2018 import MatchState2018
 from livescore import Livescore2017 as FrcLivescore2017
 from livescore import Livescore2018 as FrcLivescore2018
 from queue import Queue
@@ -50,23 +51,18 @@ class CvProvider(object):
 
             timestamp = actual_start + datetime.timedelta(
                 milliseconds=frame_time - match_start_msec)
-            state = MatchState2017()
-            state.event_key = match_key.split("_")[0]
-            state.match_id = match_key.split("_")[1]
-            state.play = 1
-            state.wall_time = timestamp.timestamp()
-            state.match_time = score_data.time
-            state.red_score = score_data.red.score
-            state.red_fuel_score = score_data.red.fuel_score
-            state.red_rotor_count = score_data.red.rotor_count
-            state.red_touchpad_count = score_data.red.touchpad_count
+            state = None
+            event_key = match_key.split("_")[0],
+            match_id = match_key.split("_")[1],
+            if year == 2017:
+                state = self._get_state_2017(event_key, match_id,
+                                             timestamp.timestamp(), score_data)
+            elif year == 2018:
+                state = self._get_state_2018(event_key, match_id,
+                                             timestamp.timestamp(), score_data)
 
-            state.blue_score = score_data.blue.score
-            state.blue_fuel_score = score_data.blue.fuel_score
-            state.blue_rotor_count = score_data.blue.rotor_count
-            state.blue_touchpad_count = score_data.blue.touchpad_count
-
-            rows.append(state)
+            if state:
+                rows.append(state)
 
         return rows
 
@@ -76,3 +72,42 @@ class CvProvider(object):
         image = cv2.imread(self.TEST_IMAGE_2017)
         score_data = self.livescore2017.read(image)
         return str(score_data)
+
+    def _set_common_state(self, state, event_key, match_id, wall_time, score_data):
+        state.event_key = event_key
+        state.match_id = match_id
+        state.play = 1
+        state.wall_time = timestamp.timestamp()
+        state.time_remaining = score_data.time
+        state.mode = score_data.mode
+        state.red_score = score_data.red.score
+        state.blue_score = score_data.blue.score
+
+    def _get_state_2017(self, event_key, match_id, wall_time, score_data):
+        state = MatchState2017()
+        self._set_common_state(state, event_key, match_id, wall_time,
+                               score_data)
+
+        state.red_fuel_score = score_data.red.fuel_score
+        state.red_rotor_count = score_data.red.rotor_count
+        state.red_touchpad_count = score_data.red.touchpad_count
+
+        state.blue_fuel_score = score_data.blue.fuel_score
+        state.blue_rotor_count = score_data.blue.rotor_count
+        state.blue_touchpad_count = score_data.blue.touchpad_count
+
+    def _get_state_2018(self, event_key, match_id, wall_time, score_data):
+        state = MatchState2018()
+        self._set_common_state(state, event_key, match_id, wall_time,
+                               score_data)
+
+        for alliance in ['red', 'blue']:
+            alliance_data = getattr(score_data, alliance)
+            for attr in [
+                    'boost_count', 'boost_played', 'force_count',
+                    'force_played', 'levitate_count', 'levitate_played',
+                    'switch_owned', 'scale_owned', 'current_powerup',
+                    'powerup_time_remaining', 'auto_query', 'face_the_boss'
+            ]:
+                cv_attr = getattr(alliance_data, attr)
+                setattr(state, "{}_{}".format(alliance, attr))
