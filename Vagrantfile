@@ -29,16 +29,16 @@ Vagrant.configure("2") do |config|
       d.create_args = ["--add-host", "metadata.google.internal:127.0.0.1"]
     end
 
+    # Bootstrap local mysql db
+    gdcv.vm.provision "shell",
+      inline: "cd /gdcv && ./scripts/setup-mysql.sh",
+      privileged: false
+
     # Start the GDCV server
     gdcv.vm.provision "shell",
       inline: "cd /gdcv && ./scripts/bootstrap-dev-gdcv.sh",
       privileged: false,
       run: "always"
-
-    # Bootstrap local mysql db
-    gdcv.vm.provision "shell",
-      inline: "cd /gdcv && ./scripts/setup-mysql.sh",
-      privileged: false
   end
 
   # Configure ssh into container

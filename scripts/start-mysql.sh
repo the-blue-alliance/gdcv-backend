@@ -22,6 +22,8 @@ echo "Using db engine $db_engine"
 case "$db_engine" in
   mysql)
     echo "Starting local mysqld"
+    mkdir -p /var/run/mysqld
+    chown mysql:mysql /var/run/mysqld
     mysqld_safe
     ;;
 
