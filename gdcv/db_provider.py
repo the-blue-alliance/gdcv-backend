@@ -20,7 +20,7 @@ class DbProvider(object):
         sql_db = self.metadata.get('sql_db').decode('utf-8')
 
         connect_str = 'mysql://{}:{}@{}/{}'.format(sql_user, sql_pass, sql_host, sql_db)
-        logging.info("Connecting to db: {}".format(connect_str))
+        logging.debug("Connecting to db: {}".format(connect_str))
 
         self.engine = create_engine(connect_str)
         self.session_factory = sessionmaker(bind=self.engine)

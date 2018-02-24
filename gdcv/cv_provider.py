@@ -4,6 +4,7 @@ import json
 import logging
 from db.match_state_2017 import MatchState2017
 from livescore import Livescore2017 as FrcLivescore2017
+from livescore import Livescore2018 as FrcLivescore2018
 from queue import Queue
 
 class CvProvider(object):
@@ -12,13 +13,22 @@ class CvProvider(object):
     TEST_IMAGE_2017 = './test-images/2017/01.png'
 
     def __init__(self):
-        self.livescore = FrcLivescore2017()
+        self.livescore2017 = FrcLivescore2017()
+        self.livescore2018 = FrcLivescore2018()
+
+    def _livescore_for_year(self, year: int):
+        if year == 2017:
+            return self.livescore2017
+        elif year == 2018:
+            return self.livescore2018
+        return None
 
     def process_frame_queue(self, year: int, match_key: str, actual_start: datetime, frame_queue: Queue):
-        if year != 2017:
+        if year not in [2017, 2018]:
             # TODO eventually support other years
             logging.error("Unsupported CV year: {}".format(year))
 
+        livescore = self._livescore_for_year(year)
         logging.info("Processing frame queue of {} frames".format(
             frame_queue.qsize()))
         rows = []
@@ -26,7 +36,7 @@ class CvProvider(object):
         while not frame_queue.empty():
             frame, frame_time = frame_queue.get()
             logging.info("Frame time: {}".format(frame_time))
-            score_data = self.livescore.read(frame)
+            score_data = livescore.read(frame)
             logging.debug("Frame data: {}".format(str(score_data)))
             if not score_data:
                 logging.warning("Unable to parse frame")
@@ -57,5 +67,5 @@ class CvProvider(object):
     def process_test_image(self):
         logging.info("Processing test image: {}".format(self.TEST_IMAGE_2017))
         image = cv2.imread(self.TEST_IMAGE_2017)
-        score_data = self.livescore.read(image)
+        score_data = self.livescore2017.read(image)
         return str(score_data)

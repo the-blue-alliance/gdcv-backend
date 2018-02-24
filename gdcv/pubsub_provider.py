@@ -1,3 +1,4 @@
+import datetime
 import logging
 import queue
 
@@ -10,6 +11,7 @@ class PubSubProvider(object):
         self.topic_id = topic_id.decode('utf-8')
         self.msg_queue = queue.Queue()
         self.subscriber = None
+        self.current_message = None
 
     def init(self):
         self._create()
@@ -30,7 +32,26 @@ class PubSubProvider(object):
         return subscription.open(self._callback)
 
     def getNextMessage(self):
-        return self.msg_queue.get()
+        if self.current_message:
+            logging.warning(
+                "Already processing message {}, can't get another!".format(
+                    self.current_message.message_id))
+            return None
+        logging.info("Blocking for next pubsub message...")
+        message = self.msg_queue.get()
+        now = datetime.datetime.now()
+        message_data = message.data.decode('utf-8')
+        logging.info("Got message {} published at {} with data: {}".format(
+            message.message_id, message.publish_time, message_data))
+        self.current_message = message
+        return message.message_id, message_data
+
+    def completeProcessing(self, message_id):
+        if message_id != self.current_message.message_id:
+            logging.warning("Message {} is not the current message!".format(message_id))
+            return
+        self.current_message.ack()
+        self.current_message = None
 
     def _create(self):
         publisher = pubsub.PublisherClient()
@@ -48,7 +69,9 @@ class PubSubProvider(object):
         self.subscriber.create_subscription(sub_name, topic_name)
 
     def _callback(self, message):
-        data = message.data.decode('utf-8')
-        logging.info("Received pubsub message: {}".format(data))
-        message.ack()
-        self.msg_queue.put(data)
+        # If we're already processing a message, nack and send it back
+        if self.current_message:
+            logging.info("Refusing to accept new message, already busy")
+            message.nack()
+            return
+        self.msg_queue.put(message)

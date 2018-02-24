@@ -28,8 +28,6 @@ service FrcRealtimeScoringService {
 
   string sendPubSubMessage(1: string message);
 
-  string getPubSubMessage();
-
   void insertTestRow(1: string message);
 
   string getAllTestMessages();

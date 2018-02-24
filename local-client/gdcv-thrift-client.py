@@ -25,8 +25,6 @@ def main():
     testMessage = "Hello World!"
     result = client.sendPubSubMessage(testMessage)
     print("Result from pubsub send: {}".format(result))
-    result = client.getPubSubMessage()
-    print("Got message {} through local Pub/Sub".format(result))
 
     print("Testing db...")
     testMessage = "Hello World!"

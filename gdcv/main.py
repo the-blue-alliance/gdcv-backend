@@ -1,3 +1,5 @@
+import datetime
+import json
 import logging
 import threading
 import time
@@ -16,10 +18,16 @@ def run_thrift_server(service: FrcRealtimeScoringService):
     service.serve()
 
 
-def run_cv_worker(worker: FrcRealtimeWorker):
+def run_cv_worker(worker: FrcRealtimeWorker, pubsub: PubSubProvider):
     while True:
-        logging.debug("Worker stub")
-        time.sleep(1)
+        message_id, message_data = pubsub.getNextMessage()
+        should_exit = worker.process_message(message_data)
+        pubsub.completeProcessing(message_id)
+
+        if should_exit:
+            logging.info("Exiting worker thread!")
+            break
+
 
 def run_pubsub_subscriber(pubsub: PubSubProvider):
     pubsub.init()
@@ -40,20 +48,19 @@ def main():
     db_provider = DbProvider(metadata_provider)
     db_provider.connect()
     db_provider.generateSchema()
-    thrift_service = FrcRealtimeScoringService(metadata_provider,
-                                               pubsub_provider,
-                                               db_provider,
-                                               cv_provider,
-                                               media_provider,
-                                               apiv3_provider)
-    cv_worker = FrcRealtimeWorker()
+    thrift_service = FrcRealtimeScoringService(
+        metadata_provider, pubsub_provider, db_provider, cv_provider,
+        media_provider, apiv3_provider)
+    cv_worker = FrcRealtimeWorker(metadata_provider, cv_provider,
+                                  apiv3_provider, media_provider, db_provider,
+                                  pubsub_provider)
 
     # Kick off threads
     thrift_thread = threading.Thread(
         name="thrift_servre", target=run_thrift_server, args=(thrift_service,))
 
     worker_thread = threading.Thread(
-        name="cv_worker", target=run_cv_worker, args=(cv_worker,))
+        name="cv_worker", target=run_cv_worker, args=(cv_worker, pubsub_provider))
 
     pubsub_thread = threading.Thread(
         name="pubsub_subscriber",

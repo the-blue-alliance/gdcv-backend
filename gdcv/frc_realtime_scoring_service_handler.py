@@ -1,5 +1,6 @@
 import logging
 import time
+import json
 
 from apiv3_provider import ApiV3Provider
 from cv_provider import CvProvider
@@ -45,30 +46,18 @@ class FrcRealtimeScoringServiceHandler(object):
 
     def processYoutubeVideo(self, req):
         logging.debug("processYoutubeVideo() called for {}".format(req))
-        resp = self.thrift.ProcessYoutubeVideoResp()
         with self.db.session() as session:
             logging.info("clearing all 2017 match data")
             session.query(MatchState2017).delete()
-        logging.info("Loading data for match {}".format(req.matchKey))
-        match = self.apiv3.fetch_match_details(req.matchKey)
-        if not match['actual_time']:
-            logging.error("Unable to find actual_time for match")
-            resp.success = False
-            resp.message = "Unable to find actual_time for match"
-            return resp
-        start_time = datetime.utcfromtimestamp(match['actual_time'])
-        logging.info("Match started at {} UTC".format(start_time))
-        frame_queue = Queue()
-        logging.info("Processing video id {}".format(req.videoKey))
-        self.media.fetch_youtube_video(req.videoKey, frame_queue, 500)
-        db_rows = self.cv.process_frame_queue(req.year, req.matchKey,
-                                              start_time, frame_queue)
-        logging.info("Inserting {} rows into the DB".format(len(db_rows)))
-        with self.db.session() as session:
-            for row in db_rows:
-                session.add(row)
+        message_data = {
+            'type': 'process_match',
+            'match_key': req.matchKey,
+            'video_id': req.videoKey ,
+        }
+        self.pubsub.push(json.dumps(message_data))
+        resp = self.thrift.ProcessYoutubeVideoResp()
         resp.success = True
-        resp.message = "success!"
+        resp.message = "request enqueued!"
         return resp
 
     def getMetadataValue(self, key):
@@ -80,12 +69,12 @@ class FrcRealtimeScoringServiceHandler(object):
         logging.debug(
             "sendPubSubMessage() called with message{}".format(
                 message))
-        result = self.pubsub.push(message)
+        message = {
+            'type': 'test',
+            'message': message,
+        }
+        result = self.pubsub.push(json.dumps(message))
         return result.result()
-
-    def getPubSubMessage(self):
-        logging.debug("getPubSubMessage() called")
-        return self.pubsub.getNextMessage()
 
     def insertTestRow(self, text):
         logging.debug("insertTestRow({}) called".format(text))
