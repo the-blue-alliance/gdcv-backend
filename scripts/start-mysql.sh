@@ -19,6 +19,7 @@ echo "Loading database engine from metadata"
 db_engine=$(curl -s "http://metadata.google.internal/computeMetadata/v1/project/attributes/db_engine" -H "Metadata-Flavor: Google")
 echo "Using db engine $db_engine"
 
+service mysql stop
 case "$db_engine" in
   mysql)
     echo "Starting local mysqld"
