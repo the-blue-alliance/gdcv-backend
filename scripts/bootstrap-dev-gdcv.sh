@@ -10,6 +10,12 @@ pip3 install -r ./gce_metadata_stub/requirements.txt --upgrade
 echo "Updating gdcv dependencies"
 pip3 install -r ./requirements.txt --upgrade
 
+livescore_whl=/gdcv/frc-livescore.whl
+if [ -e $livescore_whl ]; do
+  echo "Overwriting livescore from whl"
+  pip3 install $livescore_whl
+fi
+
 session=gdcv
 tmux start-server
 
