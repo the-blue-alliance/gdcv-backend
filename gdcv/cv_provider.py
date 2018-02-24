@@ -57,7 +57,14 @@ class CvProvider(object):
             state.wall_time = timestamp.timestamp()
             state.match_time = score_data.time
             state.red_score = score_data.red.score
+            state.red_fuel_score = score_data.red.fuel_score
+            state.red_rotor_count = score_data.red.rotor_count
+            state.red_touchpad_count = score_data.red.touchpad_count
+
             state.blue_score = score_data.blue.score
+            state.blue_fuel_score = score_data.blue.fuel_score
+            state.blue_rotor_count = score_data.blue.rotor_count
+            state.blue_touchpad_count = score_data.blue.touchpad_count
 
             rows.append(state)
 

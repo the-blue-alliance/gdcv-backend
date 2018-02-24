@@ -14,4 +14,11 @@ class MatchState2017(DbBase):
     match_time = Column(Integer)  # Number of seconds remaining
 
     red_score = Column(Integer)
+    red_fuel_score = Column(Integer)
+    red_rotor_count = Column(Integer)
+    red_touchpad_count = Column(Integer)
+
     blue_score = Column(Integer)
+    blue_fuel_score = Column(Integer)
+    blue_rotor_count = Column(Integer)
+    blue_touchpad_count = Column(Integer)
