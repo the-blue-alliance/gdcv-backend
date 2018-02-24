@@ -11,7 +11,7 @@ echo "Updating gdcv dependencies"
 pip3 install -r ./requirements.txt --upgrade
 
 livescore_whl=/gdcv/frc-livescore.whl
-if [ -e $livescore_whl ]; do
+if [ -e $livescore_whl ]; then
   echo "Overwriting livescore from whl"
   pip3 install $livescore_whl
 fi

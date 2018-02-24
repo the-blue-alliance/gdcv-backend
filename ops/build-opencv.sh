@@ -13,7 +13,7 @@ echo "Installing opencv $opencv_version"
 apt-get update
 apt-get install -y build-essential
 apt-get install -y cmake git pkg-config libavcodec-dev libavformat-dev libswscale-dev ffmpeg
-apt-get install -y python3-numpy libtbb2 libtbb-dev libjpeg-dev libpng-dev libtiff-dev libjasper-dev libdc1394-22-dev
+apt-get install -y python3-numpy libtbb2 libtbb-dev libjpeg-dev libpng-dev libtiff-dev libdc1394-22-dev
 
 # Set up directories for building
 mkdir -p $src_path

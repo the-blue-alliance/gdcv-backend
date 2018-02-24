@@ -45,5 +45,6 @@ Vagrant.configure("2") do |config|
   config.ssh.insert_key = true
   config.ssh.username = "root"
   config.ssh.password = "tba"
+  config.ssh.port = 2222
   config.ssh.shell = "bash -c 'BASH_ENV=/etc/profile exec bash'"
 end
