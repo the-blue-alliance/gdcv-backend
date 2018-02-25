@@ -56,7 +56,7 @@ class FrcRealtimeWorker(object):
         logging.info("Match started at {} UTC".format(start_time))
         frame_queue = Queue()
         logging.info("Processing video id {}".format(video_id))
-        self.media.fetch_youtube_video(video_id, frame_queue, 100)
+        self.media.fetch_youtube_video(video_id, frame_queue, 10)
         db_rows = self.cv_provider.process_frame_queue(year, match_key,
                                                        start_time, frame_queue)
         logging.info("Inserting {} rows into the DB".format(len(db_rows)))

@@ -56,17 +56,16 @@ class CvProvider(object):
                 match_start_msec = frame_time
 
             logging.debug("Frame data: {}".format(str(score_data)))
-            timestamp = actual_start + datetime.timedelta(
-                milliseconds=frame_time - match_start_msec)
+            timestamp = (actual_start.timestamp() * 1000) + (frame_time - match_start_msec)
             state = None
             event_key = match_key.split("_")[0],
             match_id = match_key.split("_")[1],
             if year == 2017:
                 state = self._get_state_2017(event_key, match_id,
-                                             timestamp.timestamp(), score_data)
+                                             timestamp, score_data)
             elif year == 2018:
                 state = self._get_state_2018(event_key, match_id,
-                                             timestamp.timestamp(), score_data)
+                                             timestamp, score_data)
 
             if state:
                 rows.append(state)

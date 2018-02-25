@@ -63,3 +63,6 @@ class YouTubeVideoParser(object):
 
         extraction_time = time_end - time_start
         logging.info("Frame extraction took {} seconds".format(extraction_time))
+
+        logging.info("Deleting video {}".format(filepath))
+        os.remove(filepath)

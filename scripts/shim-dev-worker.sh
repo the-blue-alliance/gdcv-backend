@@ -46,11 +46,11 @@ do
   [[ "${LOGLINE}" == *"Starting mysqld daemon"* || "${LOGLINE}" == *"Ready for new connections"* ]] && pkill -P $$ tail
 done
 
-echo "Making sure correct sql db exists..."
-sql_user=$(curl -s "http://metadata.google.internal/computeMetadata/v1/project/attributes/sql_user" -H "Metadata-Flavor: Google")
-sql_pass=$(curl -s "http://metadata.google.internal/computeMetadata/v1/project/attributes/sql_pass" -H "Metadata-Flavor: Google")
-sql_db=$(curl -s "http://metadata.google.internal/computeMetadata/v1/project/attributes/sql_db" -H "Metadata-Flavor: Google")
-mysql -e "CREATE DATABASE IF NOT EXISTS ${sql_db};" --host 127.0.0.1 -p${sql_pass} -u ${sql_user}
+#echo "Making sure correct sql db exists..."
+#sql_user=$(curl -s "http://metadata.google.internal/computeMetadata/v1/project/attributes/sql_user" -H "Metadata-Flavor: Google")
+#sql_pass=$(curl -s "http://metadata.google.internal/computeMetadata/v1/project/attributes/sql_pass" -H "Metadata-Flavor: Google")
+#sql_db=$(curl -s "http://metadata.google.internal/computeMetadata/v1/project/attributes/sql_db" -H "Metadata-Flavor: Google")
+#mysql -e "CREATE DATABASE IF NOT EXISTS ${sql_db};" --host 127.0.0.1 -p${sql_pass} -u ${sql_user}
 
 echo "Starting gdcv..."
 export PUBSUB_EMULATOR_HOST="$pubsub_host"

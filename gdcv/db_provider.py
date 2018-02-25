@@ -14,6 +14,7 @@ class DbProvider(object):
         self.metadata = metadata
 
     def connect(self):
+        logging.info("Connecting to mysql...")
         sql_host = self.metadata.get('sql_host').decode('utf-8')
         sql_user = self.metadata.get('sql_user').decode('utf-8')
         sql_pass = self.metadata.get('sql_pass').decode('utf-8')
@@ -26,6 +27,7 @@ class DbProvider(object):
         self.session_factory = sessionmaker(bind=self.engine)
 
     def generateSchema(self):
+        logging.info("Generating mysql schema")
         DbBase.metadata.create_all(self.engine)
 
     def deleteMatchData(self, match_key):
