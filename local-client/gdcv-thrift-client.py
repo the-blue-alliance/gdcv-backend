@@ -35,13 +35,10 @@ def main():
     print("Testing frc-livescore...")
     print("Test image: {}".format(client.processTestImage()))
 
-    print("Testing parsing youtube video")
+    print("Testing parsing 2018 video")
     req = gdcv_thrift.ProcessYoutubeVideoReq()
-    req.year = 2017
-    req.matchKey = '2017cmpmo_f1m1'
-    req.videoKey = 'CL1lSdTkTUk'
+    req.matchKey = '2018week0_qm1'
     resp = client.processYoutubeVideo(req)
-    print("Response: {} {}".format(resp.success, resp.message))
 
 if __name__ == "__main__":
     main()

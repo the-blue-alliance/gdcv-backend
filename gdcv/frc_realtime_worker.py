@@ -39,7 +39,7 @@ class FrcRealtimeWorker(object):
         logging.info("message processing complete")
         return False
 
-    def _process_match_video(self, match_key: str, video_id: str):
+    def _process_match_video(self, match_key: str, video_id: str=None):
         logging.info("Loading data for match {}".format(match_key))
         match = self.apiv3.fetch_match_details(match_key)
         year = int(match_key[:4])
@@ -47,10 +47,13 @@ class FrcRealtimeWorker(object):
             logging.error("Unable to find actual_time for match")
             return Nonefetch_match_details
         start_time = datetime.datetime.utcfromtimestamp(match['actual_time'])
+        if not video_id and match["videos"]:
+            video_id = match["videos"][0]["key"]
+            logging.info("Using video id {} from apiv3".format(video_id))
         logging.info("Match started at {} UTC".format(start_time))
         frame_queue = Queue()
         logging.info("Processing video id {}".format(video_id))
-        self.media.fetch_youtube_video(video_id, frame_queue, 500)
+        self.media.fetch_youtube_video(video_id, frame_queue, 100)
         db_rows = self.cv_provider.process_frame_queue(year, match_key,
                                                        start_time, frame_queue)
         logging.info("Inserting {} rows into the DB".format(len(db_rows)))

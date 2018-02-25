@@ -60,6 +60,10 @@ class FrcRealtimeScoringServiceHandler(object):
         resp.message = "request enqueued!"
         return resp
 
+    def blockUntilNotProcessing(self):
+        while self.pubsub.current_message is not None:
+            time.sleep(1)
+
     def getMetadataValue(self, key):
         # Hit the local metadata server and get the value for this key
         logging.debug("getMetadataValue() called for key {}".format(key))

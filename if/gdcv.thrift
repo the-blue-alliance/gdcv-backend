@@ -1,8 +1,7 @@
 
 struct ProcessYoutubeVideoReq {
-  1: required i64 year,
-  2: required string matchKey,
-  3: required string videoKey,
+  1: required string matchKey,
+  2: optional string videoKey,
 }
 
 struct ProcessYoutubeVideoResp {
@@ -21,6 +20,8 @@ service FrcRealtimeScoringService {
   string getStatus();
 
   ProcessYoutubeVideoResp processYoutubeVideo(1: ProcessYoutubeVideoReq req);
+
+  void blockUntilNotProcessing();
 
   /* Test Interface Methods */
 

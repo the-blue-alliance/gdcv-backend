@@ -4,6 +4,7 @@ import json
 import logging
 from db.match_state_2017 import MatchState2017
 from db.match_state_2018 import MatchState2018
+from livescore.LivescoreBase import NoOverlayFoundException
 from livescore import Livescore2017 as FrcLivescore2017
 from livescore import Livescore2018 as FrcLivescore2018
 from queue import Queue
@@ -37,18 +38,21 @@ class CvProvider(object):
         while not frame_queue.empty():
             frame, frame_time = frame_queue.get()
             logging.info("Frame time: {}".format(frame_time))
-            score_data = livescore.read(frame)
-            logging.debug("Frame data: {}".format(str(score_data)))
+            try:
+                score_data = livescore.read(frame)
+            except NoOverlayFoundException:
+                continue
             if not score_data:
                 logging.warning("Unable to parse frame")
                 continue
-            if not score_data.time:
+            if not score_data.time or score_data.mode == 'pre_match' or score_data.mode == 'post_match':
                 # Match not started yet, ignore
                 continue
             elif not match_start_msec:
                 # First frame with a real timestamp, sync with actual start time
                 match_start_msec = frame_time
 
+            logging.info("Frame data: {}".format(str(score_data)))
             timestamp = actual_start + datetime.timedelta(
                 milliseconds=frame_time - match_start_msec)
             state = None
@@ -77,7 +81,7 @@ class CvProvider(object):
         state.event_key = event_key
         state.match_id = match_id
         state.play = 1
-        state.wall_time = timestamp.timestamp()
+        state.wall_time = wall_time
         state.time_remaining = score_data.time
         state.mode = score_data.mode
         state.red_score = score_data.red.score
@@ -95,6 +99,7 @@ class CvProvider(object):
         state.blue_fuel_score = score_data.blue.fuel_score
         state.blue_rotor_count = score_data.blue.rotor_count
         state.blue_touchpad_count = score_data.blue.touchpad_count
+        return state
 
     def _get_state_2018(self, event_key, match_id, wall_time, score_data):
         state = MatchState2018()
@@ -107,7 +112,8 @@ class CvProvider(object):
                     'boost_count', 'boost_played', 'force_count',
                     'force_played', 'levitate_count', 'levitate_played',
                     'switch_owned', 'scale_owned', 'current_powerup',
-                    'powerup_time_remaining', 'auto_query', 'face_the_boss'
+                    'powerup_time_remaining', 'auto_quest', 'face_the_boss'
             ]:
                 cv_attr = getattr(alliance_data, attr)
-                setattr(state, "{}_{}".format(alliance, attr))
+                setattr(state, "{}_{}".format(alliance, attr), cv_attr)
+        return state
