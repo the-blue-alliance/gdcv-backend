@@ -42,6 +42,9 @@ class CvProvider(object):
                 score_data = livescore.read(frame)
             except NoOverlayFoundException:
                 continue
+            except Exception as e:
+                logging.exception(e)
+                continue
             if not score_data:
                 logging.warning("Unable to parse frame")
                 continue
@@ -52,7 +55,7 @@ class CvProvider(object):
                 # First frame with a real timestamp, sync with actual start time
                 match_start_msec = frame_time
 
-            logging.info("Frame data: {}".format(str(score_data)))
+            logging.debug("Frame data: {}".format(str(score_data)))
             timestamp = actual_start + datetime.timedelta(
                 milliseconds=frame_time - match_start_msec)
             state = None

@@ -36,9 +36,9 @@ def main():
     print("Test image: {}".format(client.processTestImage()))
 
     print("Testing parsing 2018 video")
-    req = gdcv_thrift.ProcessYoutubeVideoReq()
+    req = gdcv_thrift.ProcessSingleMatchReq()
     req.matchKey = '2018week0_qm1'
-    resp = client.processYoutubeVideo(req)
+    resp = client.enqueueSingleMatch(req)
 
 if __name__ == "__main__":
     main()

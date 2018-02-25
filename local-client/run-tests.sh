@@ -11,5 +11,13 @@ if [ ! -f ./Vagrantfile ]; then
     exit -1
 fi
 
-echo "Starting tests..."
-pex thriftpy requests -- ./local-client/gdcv-thrift-client.py
+case $1 in
+  "event")
+    echo "Starting event processer..."
+    pex thriftpy requests -- ./local-client/process-event.py $2
+    ;;
+  *)
+    echo "Starting default tests..."
+    pex thriftpy requests -- ./local-client/gdcv-thrift-client.py
+    ;;
+esac

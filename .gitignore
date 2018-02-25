@@ -1,4 +1,4 @@
 dev_metadata.json
-cloud-sql-auth.json
+*-auth.json
 bin/livescore-*.whl
 .vagrant/

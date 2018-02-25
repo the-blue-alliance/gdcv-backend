@@ -44,18 +44,28 @@ class FrcRealtimeScoringServiceHandler(object):
         logging.debug("getStatus() called")
         return "RUNNING"
 
-    def processYoutubeVideo(self, req):
-        logging.debug("processYoutubeVideo() called for {}".format(req))
-        with self.db.session() as session:
-            logging.info("clearing all 2017 match data")
-            session.query(MatchState2017).delete()
+    def enqueueSingleMatch(self, req):
+        logging.debug("enqueueSingleMatch() called for {}".format(req))
+        self.db.deleteMatchData(req.matchKey)
         message_data = {
             'type': 'process_match',
             'match_key': req.matchKey,
             'video_id': req.videoKey ,
         }
         self.pubsub.push(json.dumps(message_data))
-        resp = self.thrift.ProcessYoutubeVideoResp()
+        resp = self.thrift.EnqueueProcessResponse()
+        resp.success = True
+        resp.message = "request enqueued!"
+        return resp
+
+    def enqueueEvent(self, req):
+        self.db.deleteEventData(req.eventKey)
+        message_data = {
+            'type': 'process_event',
+            'event_key': req.eventKey,
+        }
+        self.pubsub.push(json.dumps(message_data))
+        resp = self.thrift.EnqueueProcessResponse()
         resp.success = True
         resp.message = "request enqueued!"
         return resp

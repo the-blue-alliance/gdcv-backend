@@ -1,10 +1,14 @@
 
-struct ProcessYoutubeVideoReq {
+struct ProcessSingleMatchReq {
   1: required string matchKey,
   2: optional string videoKey,
 }
 
-struct ProcessYoutubeVideoResp {
+struct ProcessEventReq {
+  1: required string eventKey;
+}
+
+struct EnqueueProcessResponse {
   1: required bool success,
   2: string message,
 }
@@ -19,7 +23,9 @@ service FrcRealtimeScoringService {
 
   string getStatus();
 
-  ProcessYoutubeVideoResp processYoutubeVideo(1: ProcessYoutubeVideoReq req);
+  EnqueueProcessResponse enqueueSingleMatch(1: ProcessSingleMatchReq req);
+
+  EnqueueProcessResponse enqueueEvent(1: ProcessEventReq req);
 
   void blockUntilNotProcessing();
 

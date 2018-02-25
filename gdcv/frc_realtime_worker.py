@@ -50,6 +50,9 @@ class FrcRealtimeWorker(object):
         if not video_id and match["videos"]:
             video_id = match["videos"][0]["key"]
             logging.info("Using video id {} from apiv3".format(video_id))
+        elif not match["videos"]:
+            logging.warning("No videos found, skipping...")
+            return
         logging.info("Match started at {} UTC".format(start_time))
         frame_queue = Queue()
         logging.info("Processing video id {}".format(video_id))
@@ -64,22 +67,10 @@ class FrcRealtimeWorker(object):
     def _process_event_videos(self, event_key: str):
         logging.info("Loading matches for event {}".format(event_key))
         matches = self.apiv3.fetch_event_matches(event_key)
+        logging.info("Found {} matches".format(len(matches)))
 
-        # If we're running with more than one instance, support enqueueing
-        # each match individual to pubsub so they can run in parallel
-        should_fanout = self.metadata.get('fanout_event_videos', False)
-        match_key = match["key"]
-        video_id = match["videos"][0]  # TODO validation
-        if should_fanout:
-            for match in matches:
-                logging.info("Enqueueing match {} to pubsub".format(
-                    match["key"]))
-                message = {
-                    'type': 'process_match',
-                    'match_key': match_key,
-                    'video_id': video_id,
-                }
-                self.pubsub.push(json.dumps(message))
-        else:
-            for match in matches:
-                self._process_match_video(match_key, video_id)
+        # TODO should be able to enqueue each match individually to run in parallel
+
+        for match in matches:
+            logging.info("Processing {}".format(match["key"]))
+            self._process_match_video(match["key"])
