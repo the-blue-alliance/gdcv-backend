@@ -9,3 +9,4 @@ livescore
 pytube
 livestreamer
 regex
+opencv-contrib-python

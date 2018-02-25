@@ -1,0 +1,49 @@
+# To build, cd ops and run:
+# gcloud container builds submit . --config=cloudbuild.yaml --substitutions=SHORT_SHA=$(git rev-parse --short HEAD)
+
+steps:
+  - name: 'gcr.io/cloud-builders/docker'
+    args:
+      - 'build'
+      - '--file=base.Dockerfile'
+      - '--tag=gcr.io/$PROJECT_ID/gdcv-base:$SHORT_SHA'
+      - '.'
+    id: 'base'
+  - name: 'gcr.io/cloud-builders/docker'
+    args: ['tag', 'gcr.io/$PROJECT_ID/gdcv-base:$SHORT_SHA', 'gcr.io/$PROJECT_ID/gdcv-base']
+    wait_for: ['base']
+    id: 'base-latest'
+
+  - name: 'gcr.io/cloud-builders/docker'
+    args:
+      - 'build'
+      - '--file=prod.Dockerfile'
+      - '--tag=gcr.io/$PROJECT_ID/gdcv-prod:$SHORT_SHA'
+      - '.'
+    id: 'prod'
+    wait_for: ['base-latest']
+  - name: 'gcr.io/cloud-builders/docker'
+    args: ['tag', 'gcr.io/$PROJECT_ID/gdcv-prod:$SHORT_SHA', 'gcr.io/$PROJECT_ID/gdcv-prod']
+    wait_for: ['prod']
+    id: 'prod-latest'
+
+  - name: 'gcr.io/cloud-builders/docker'
+    args:
+      - 'build'
+      - '--file=dev.Dockerfile'
+      - '--tag=gcr.io/$PROJECT_ID/gdcv-dev:$SHORT_SHA'
+      - '.'
+    id: 'dev'
+    wait_for: ['prod-latest']
+  - name: 'gcr.io/cloud-builders/docker'
+    args: ['tag', 'gcr.io/$PROJECT_ID/gdcv-dev:$SHORT_SHA', 'gcr.io/$PROJECT_ID/gdcv-dev']
+    wait_for: ['dev']
+    id: 'dev-latest'
+
+images:
+- 'gcr.io/$PROJECT_ID/gdcv-base:latest'
+- 'gcr.io/$PROJECT_ID/gdcv-prod:latest'
+- 'gcr.io/$PROJECT_ID/gdcv-dev:latest'
+- 'gcr.io/$PROJECT_ID/gdcv-base:$SHORT_SHA'
+- 'gcr.io/$PROJECT_ID/gdcv-prod:$SHORT_SHA'
+- 'gcr.io/$PROJECT_ID/gdcv-dev:$SHORT_SHA'
