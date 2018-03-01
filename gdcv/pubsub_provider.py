@@ -56,8 +56,13 @@ class PubSubProvider(object):
     def _create(self):
         publisher = pubsub.PublisherClient()
         full_topic = publisher.topic_path(self.project_id, self.topic_id)
-        logging.info("Creating pubsub topic {}".format(full_topic))
-        publisher.create_topic(full_topic)
+        project_path = publisher.project_path(self.project_id)
+        current_topics = publisher.list_topics(project_path)
+        if full_topic in current_topics:
+            logger.info("Pub/Sub topic {} already exists".format(full_topic))
+        else:
+            logging.info("Creating pubsub topic {}".format(full_topic))
+            publisher.create_topic(full_topic)
 
     def _subscribe(self):
         self.subscriber = pubsub.SubscriberClient()

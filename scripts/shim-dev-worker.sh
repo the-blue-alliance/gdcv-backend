@@ -56,7 +56,7 @@ echo "Starting gdcv..."
 pubsub_tier=$(curl -s "http://metadata.google.internal/computeMetadata/v1/project/attributes/pubsub_tier" -H "Metadata-Flavor: Google")
 case $pubsub_tier in
   "gcp")
-    export GOOGLE_APPLICATION_CREDENTIALS=$(cat cloud-sql-auth.json)
+    export GOOGLE_APPLICATION_CREDENTIALS=/gdcv/cloud-sql-auth.json
     ;;
   "local")
     export PUBSUB_EMULATOR_HOST="$pubsub_host"

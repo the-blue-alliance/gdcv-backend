@@ -25,7 +25,7 @@ auth_path=/gdcv/cloud-sql-auth.json
 sql_log=/var/log/gdcv_sql.log
 gcp_auth=$(curl -s "http://metadata.google.internal/computeMetadata/v1/project/attributes/gcp_auth" -H "Metadata-Flavor: Google")
 echo $gcp_auth > $auth_path
-export GOOGLE_APPLICATION_CREDENTIALS=$gcp_auth
+export GOOGLE_APPLICATION_CREDENTIALS=$auth_path
 
 echo "Downloading and installing frc-livescore"
 livescore_commit=$(curl -s "http://metadata.google.internal/computeMetadata/v1/project/attributes/livescore_commit" -H "Metadata-Flavor: Google")
