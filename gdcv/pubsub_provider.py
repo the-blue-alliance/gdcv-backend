@@ -1,8 +1,10 @@
 import datetime
 import logging
 import queue
+import socket
 
 from google.cloud import pubsub
+from google.api_core.exceptions import AlreadyExists
 
 class PubSubProvider(object):
 
@@ -11,6 +13,7 @@ class PubSubProvider(object):
         self.topic_id = topic_id.decode('utf-8')
         self.msg_queue = queue.Queue()
         self.subscriber = None
+        self.subscription_path = None
         self.current_message = None
 
     def init(self):
@@ -26,9 +29,7 @@ class PubSubProvider(object):
 
     def pull(self):
         logging.info("Blocking local thread to stream messages from pubsub")
-        sub_name = self.subscriber.subscription_path(self.project_id,
-                                                     self.topic_id)
-        subscription = self.subscriber.subscribe(sub_name)
+        subscription = self.subscriber.subscribe(self.subscription_path)
         return subscription.open(self._callback)
 
     def getNextMessage(self):
@@ -58,20 +59,24 @@ class PubSubProvider(object):
         full_topic = publisher.topic_path(self.project_id, self.topic_id)
         project_path = publisher.project_path(self.project_id)
         current_topics = publisher.list_topics(project_path)
+        logging.info("Current pub/sub topics: {}".format(current_topics))
         if full_topic in current_topics:
             logger.info("Pub/Sub topic {} already exists".format(full_topic))
         else:
             logging.info("Creating pubsub topic {}".format(full_topic))
-            publisher.create_topic(full_topic)
+            try:
+                # Still be careful, this could possibly race
+                publisher.create_topic(full_topic)
+            except AlreadyExists:
+                logging.warning("Pub/Sub topic {} already exists".format(full_topic))
 
     def _subscribe(self):
         self.subscriber = pubsub.SubscriberClient()
         topic_name = self.subscriber.topic_path(self.project_id, self.topic_id)
-        sub_name = self.subscriber.subscription_path(self.project_id,
-                                                     self.topic_id)
-        logging.info("Pulling messages from subscription {}".format(sub_name))
+        self.subscription_path = self.subscriber.subscription_path(self.project_id, "{}-{}".format(self.topic_id, socket.gethostname()))
+        logging.info("Pulling messages from subscription {}".format(self.subscription_path))
 
-        self.subscriber.create_subscription(sub_name, topic_name)
+        self.subscriber.create_subscription(self.subscription_path, topic_name)
 
     def _callback(self, message):
         # If we're already processing a message, nack and send it back
