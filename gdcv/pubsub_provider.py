@@ -76,7 +76,12 @@ class PubSubProvider(object):
         self.subscription_path = self.subscriber.subscription_path(self.project_id, "{}-{}".format(self.topic_id, socket.gethostname()))
         logging.info("Pulling messages from subscription {}".format(self.subscription_path))
 
-        self.subscriber.create_subscription(self.subscription_path, topic_name)
+        try:
+            self.subscriber.create_subscription(self.subscription_path, topic_name)
+        except AlreadyExists:
+            logging.warning("Pub/Sub subscription {} already exists".format(self.subscription_path))
+            self.subscriber.delete_subscription(self.subscription_path)
+            self.subscriber.create_subscription(self.subscription_path, topic_name)
 
     def _callback(self, message):
         # If we're already processing a message, nack and send it back
