@@ -10,3 +10,4 @@ pytube
 livestreamer
 regex
 opencv-contrib-python
+wheel

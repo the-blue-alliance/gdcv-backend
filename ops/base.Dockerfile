@@ -18,6 +18,7 @@ RUN apt-get update && apt-get install -y \
   vim \
   wget \
   build-essential \
+  libsm6 \
   cmake git pkg-config libavcodec-dev libavformat-dev libswscale-dev ffmpeg \
   python3-numpy libtbb2 libtbb-dev libjpeg-dev libpng-dev libtiff-dev libdc1394-22-dev
 
@@ -35,6 +36,6 @@ RUN apt-get update && apt-get install -y tesseract-ocr imagemagick locales unzip
 #RUN /build-opencv.sh 3.4.0
 
 # Install mysql python library
-RUN apt-get install -y libmysqlclient-dev
+RUN apt-get install -y libmysqlclient-dev mysql-client
 
 CMD ["/bin/bash"]
