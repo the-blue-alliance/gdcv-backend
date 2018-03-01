@@ -20,10 +20,12 @@ chmod +x /cloud_sql_proxy
 instance_name=$(curl -s "http://metadata.google.internal/computeMetadata/v1/project/attributes/cloud_sql_instance_name" -H "Metadata-Flavor: Google")
 sql_port=$(curl -s "http://metadata.google.internal/computeMetadata/v1/project/attributes/sql_port" -H "Metadata-Flavor: Google")
 
+echo "Configuring GCP Authentication"
 auth_path=/gdcv/cloud-sql-auth.json
 sql_log=/var/log/gdcv_sql.log
-auth_file=$(curl -s "http://metadata.google.internal/computeMetadata/v1/project/attributes/sql_auth" -H "Metadata-Flavor: Google")
-echo $auth_file > $auth_path
+gcp_auth=$(curl -s "http://metadata.google.internal/computeMetadata/v1/project/attributes/gcp_auth" -H "Metadata-Flavor: Google")
+echo $gcp_auth > $auth_path
+export GOOGLE_APPLICATION_CREDENTIALS=$gcp_auth
 
 echo "Downloading and installing frc-livescore"
 livescore_commit=$(curl -s "http://metadata.google.internal/computeMetadata/v1/project/attributes/livescore_commit" -H "Metadata-Flavor: Google")

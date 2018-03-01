@@ -53,6 +53,14 @@ done
 #mysql -e "CREATE DATABASE IF NOT EXISTS ${sql_db};" --host 127.0.0.1 -p${sql_pass} -u ${sql_user}
 
 echo "Starting gdcv..."
-export PUBSUB_EMULATOR_HOST="$pubsub_host"
-export PUBSUB_PROJECT_ID="$project_id"
+pubsub_tier=$(curl -s "http://metadata.google.internal/computeMetadata/v1/project/attributes/pubsub_tier" -H "Metadata-Flavor: Google")
+case $pubsub_tier in
+  "gcp")
+    export GOOGLE_APPLICATION_CREDENTIALS=$(cat cloud-sql-auth.json)
+    ;;
+  "local")
+    export PUBSUB_EMULATOR_HOST="$pubsub_host"
+    export PUBSUB_PROJECT_ID="$project_id"
+    ;;
+esac
 python3 ./gdcv/main.py

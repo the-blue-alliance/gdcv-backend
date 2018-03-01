@@ -24,7 +24,7 @@ def run_cv_worker(worker: FrcRealtimeWorker, pubsub: PubSubProvider):
         try:
             should_exit = worker.process_message(message_data)
         except Exception as ex:
-            logging.exception("Unable to process message", ex)
+            logging.exception("Unable to process message")
         pubsub.completeProcessing(message_id)
 
         if should_exit:
@@ -33,11 +33,14 @@ def run_cv_worker(worker: FrcRealtimeWorker, pubsub: PubSubProvider):
 
 
 def run_pubsub_subscriber(pubsub: PubSubProvider):
-    pubsub.init()
-    message_stream = pubsub.pull()
+    try:
+        pubsub.init()
+        message_stream = pubsub.pull()
 
-    # Block forever and receive messages
-    message_stream.result()
+        # Block forever and receive messages
+        message_stream.result()
+    except Exception as ex:
+        logging.exception("Pubsub error")
 
 def main():
     logging.info("Starting gdcv application...")
