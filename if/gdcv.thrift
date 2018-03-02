@@ -10,7 +10,7 @@ struct ProcessEventReq {
 
 struct ProcessStreamReq {
   1: required string eventKey;
-  2: required string streamUrl;
+  2: optional string streamUrl;
 }
 
 struct EnqueueProcessResponse {

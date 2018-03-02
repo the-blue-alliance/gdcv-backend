@@ -13,6 +13,16 @@ class ApiV3Provider(object):
     def _get_auth_key(self):
         return self.metadata.get('apiv3_auth_key')
 
+    def fetch_event_details(self, event_key):
+        auth_key = self._get_auth_key()
+        if not auth_key:
+            logging.error("No apiv3 auth key found")
+            return None
+        url = self.BASE_URL.format('event/{}'.format(event_key))
+        logging.debug("Making apiv3 request: {}".format(url))
+        r = requests.get(url, headers={self.AUTH_HEADER: auth_key})
+        return r.json()
+
     def fetch_event_matches(self, event_key):
         auth_key = self._get_auth_key()
         if not auth_key:

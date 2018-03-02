@@ -9,6 +9,7 @@ from media.media_provider import MediaProvider
 from metadata_provider import MetadataProvider
 from pubsub_provider import PubSubProvider
 from queue import Queue
+from typing import Tuple
 
 
 class FrcRealtimeWorker(object):
@@ -24,11 +25,13 @@ class FrcRealtimeWorker(object):
         self.firebase = firebase
 
     def process_message(self, message_data: str):
+        # Returns a tuple of <should exit, should ack message>
         message = json.loads(message_data)
         message_type = message["type"]
         logging.info("Processing message type: {}".format(message_type))
+        should_ack = True
         if message_type == 'exit':
-            return True
+            return True, should_ack
         elif message_type == 'test':
             logging.info("Got test message: {}".format(message["message"]))
         elif message_type == 'process_match':
@@ -39,15 +42,35 @@ class FrcRealtimeWorker(object):
             event_key = message["event_key"]
             self._process_event_videos(event_key)
         elif message_type == 'process_stream':
-            stream_url = message["stream_url"]
+            stream_url = message.get("stream_url")
             event_key = message["event_key"]
-            self._process_stream(event_key, stream_url)
+            should_ack = self._process_stream(event_key, stream_url)
         logging.info("message processing complete")
-        return False
+        return False, should_ack
 
-    def _process_stream(self, event_key: str, stream_url: str):
+    def _process_stream(self, event_key: str, stream_url: str=None):
+        logging.info("Processing stream for event {}".format(event_key))
+        event_info = self.apiv3.fetch_event_details(event_key)
+        event_end = datetime.datetime.strptime(event_info['end_date'], "%Y-%m-%d")
+        event_end += datetime.timedelta(days=1)
+        now = datetime.datetime.now()
+        if now > event_end:
+            # Event is over, we can now ack the message
+            return True
+
+        if not stream_url and event_info["webcasts"]:
+            twitch_streams = filter(lambda w: w.type == 'twitch')
+            stream_url = next(["https://twitch.tv/{}".format(w.channel) for w in twitch_streams])
+            logging.info("Using webcast {} from APIv3".format(stream_url))
+            
+        if not stream_url:
+            logging.warning("No webcasts found for event {}".format(event_key))
+            return False
         self.media.process_twitch_stream(event_key, stream_url,
                                          self._live_frame_callback)
+
+        # Don't ack this message until the event is over
+        return False
 
     def _live_frame_callback(self, event_key, image):
         if image is None:

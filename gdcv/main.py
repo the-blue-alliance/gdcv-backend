@@ -22,11 +22,12 @@ def run_thrift_server(service: FrcRealtimeScoringService):
 def run_cv_worker(worker: FrcRealtimeWorker, pubsub: PubSubProvider):
     while True:
         message_id, message_data = pubsub.getNextMessage()
+        should_ack = True
         try:
-            should_exit = worker.process_message(message_data)
+            should_exit, should_ack = worker.process_message(message_data)
         except Exception as ex:
             logging.exception("Unable to process message")
-        pubsub.completeProcessing(message_id)
+        pubsub.completeProcessing(message_id, should_ack)
 
         if should_exit:
             logging.info("Exiting worker thread!")

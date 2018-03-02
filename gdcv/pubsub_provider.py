@@ -47,11 +47,12 @@ class PubSubProvider(object):
         self.current_message = message
         return message.message_id, message_data
 
-    def completeProcessing(self, message_id):
+    def completeProcessing(self, message_id, should_ack=True):
         if message_id != self.current_message.message_id:
             logging.warning("Message {} is not the current message!".format(message_id))
             return
-        self.current_message.ack()
+        if should_ack:
+            self.current_message.ack()
         self.current_message = None
 
     def _create(self):
