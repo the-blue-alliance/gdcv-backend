@@ -30,31 +30,31 @@ class FrcRealtimeWorker(object):
 
     def process_message(self, message_data: str):
         # Returns a tuple of <should exit, should ack message>
+        action = 'ack'
         try:
             message = json.loads(message_data)
+            message_type = message["type"]
+            logging.info("Processing message type: {}".format(message_type))
+            if message_type == 'exit':
+                return True, action
+            elif message_type == 'test':
+                logging.info("Got test message: {}".format(message["message"]))
+            elif message_type == 'process_match':
+                match_key = message["match_key"]
+                video_id = message.get("video_id")
+                self._process_match_video(match_key, video_id)
+            elif message_type == 'process_event':
+                event_key = message["event_key"]
+                self._process_event_videos(event_key)
+            elif message_type == 'process_stream':
+                stream_url = message.get("stream_url")
+                skip_date_check = message.get("skip_date_check", False)
+                event_key = message["event_key"]
+                action = self._process_stream(event_key, stream_url, skip_date_check)
+            logging.info("message processing complete")
         except Exception:
-            logging.error("unable to parse message")
-            return False, 'ack'
-        message_type = message["type"]
-        logging.info("Processing message type: {}".format(message_type))
-        action = 'ack'
-        if message_type == 'exit':
-            return True, action
-        elif message_type == 'test':
-            logging.info("Got test message: {}".format(message["message"]))
-        elif message_type == 'process_match':
-            match_key = message["match_key"]
-            video_id = message.get("video_id")
-            self._process_match_video(match_key, video_id)
-        elif message_type == 'process_event':
-            event_key = message["event_key"]
-            self._process_event_videos(event_key)
-        elif message_type == 'process_stream':
-            stream_url = message.get("stream_url")
-            skip_date_check = message.get("skip_date_check", False)
-            event_key = message["event_key"]
-            action = self._process_stream(event_key, stream_url, skip_date_check)
-        logging.info("message processing complete")
+            logging.error("Exception processing message")
+
         return False, action
 
     def _process_stream(self, event_key: str, stream_url: str=None, skip_date_check: bool=False):
