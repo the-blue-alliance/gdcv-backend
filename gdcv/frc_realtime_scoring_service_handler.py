@@ -75,6 +75,7 @@ class FrcRealtimeScoringServiceHandler(object):
             'type': 'process_stream',
             'event_key': req.eventKey,
             'stream_url': req.streamUrl,
+            'skip_date_check': req.skipDateCheck,
         }
         self.pubsub.push(json.dumps(message_data))
         resp = self.thrift.EnqueueProcessResponse()

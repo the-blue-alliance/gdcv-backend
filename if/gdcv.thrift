@@ -11,6 +11,7 @@ struct ProcessEventReq {
 struct ProcessStreamReq {
   1: required string eventKey;
   2: optional string streamUrl;
+  3: bool skipDateCheck;
 }
 
 struct EnqueueProcessResponse {

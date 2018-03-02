@@ -17,6 +17,7 @@ def main():
     req = gdcv_thrift.ProcessStreamReq()
     req.eventKey = args.key
     req.streamUrl = args.stream
+    req.skipDateCheck = True
     resp = client.enqueueStream(req)
 
     print("Response: {}".format(resp.message))

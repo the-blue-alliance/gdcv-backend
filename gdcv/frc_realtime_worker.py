@@ -43,26 +43,28 @@ class FrcRealtimeWorker(object):
             self._process_event_videos(event_key)
         elif message_type == 'process_stream':
             stream_url = message.get("stream_url")
+            skip_date_check = message.get("skip_date_check", False)
             event_key = message["event_key"]
-            should_ack = self._process_stream(event_key, stream_url)
+            should_ack = self._process_stream(event_key, stream_url, skip_date_check)
         logging.info("message processing complete")
         return False, should_ack
 
-    def _process_stream(self, event_key: str, stream_url: str=None):
+    def _process_stream(self, event_key: str, stream_url: str=None, skip_date_check: bool):
         logging.info("Processing stream for event {}".format(event_key))
         event_info = self.apiv3.fetch_event_details(event_key)
         event_end = datetime.datetime.strptime(event_info['end_date'], "%Y-%m-%d")
         event_end += datetime.timedelta(days=1)
         now = datetime.datetime.now()
-        if now > event_end:
+        if not skip_date_check and now > event_end:
             # Event is over, we can now ack the message
+            logging.info("Event {} is over, acking message")
             return True
 
         if not stream_url and event_info["webcasts"]:
             twitch_streams = filter(lambda w: w.type == 'twitch')
             stream_url = next(["https://twitch.tv/{}".format(w.channel) for w in twitch_streams])
             logging.info("Using webcast {} from APIv3".format(stream_url))
-            
+
         if not stream_url:
             logging.warning("No webcasts found for event {}".format(event_key))
             return False
