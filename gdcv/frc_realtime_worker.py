@@ -34,7 +34,7 @@ class FrcRealtimeWorker(object):
             message = json.loads(message_data)
         except Exception:
             logging.error("unable to parse message")
-            return False 'ack'
+            return False, 'ack'
         message_type = message["type"]
         logging.info("Processing message type: {}".format(message_type))
         action = 'ack'
