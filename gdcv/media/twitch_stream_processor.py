@@ -80,7 +80,11 @@ class TwitchStreamProcessor(object):
                         continue
                     frame_start = time.time()
                     image = np.fromstring(raw_image, dtype='uint8').reshape((720,1280,3))
-                    match_state = frame_callback(event_key, image)
+                    try:
+                        match_state = frame_callback(event_key, image)
+                    except Exception:
+                        logging.error("Exception processing frame")
+                        match_state = None
                     runtime = time.time() - start_process_time
                     frame_latency = time.time() - frame_start
                     logging.info("Frame processed in {} seconds".format(frame_latency))
