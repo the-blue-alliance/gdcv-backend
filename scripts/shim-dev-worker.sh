@@ -63,4 +63,7 @@ case $pubsub_tier in
     export PUBSUB_PROJECT_ID="$project_id"
     ;;
 esac
-python3 ./gdcv/main.py
+while true; do
+  python3 ./gdcv/main.py
+  read
+done

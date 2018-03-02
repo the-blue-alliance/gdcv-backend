@@ -16,6 +16,10 @@ case $1 in
     echo "Starting event processer..."
     pex thriftpy requests -- ./local-client/process-event.py $2
     ;;
+  "stream")
+    echo "Starting stream processor..."
+    pex thriftpy requests -- ./local-client/process-stream.py $2 $3
+    ;;
   *)
     echo "Starting default tests..."
     pex thriftpy requests -- ./local-client/gdcv-thrift-client.py

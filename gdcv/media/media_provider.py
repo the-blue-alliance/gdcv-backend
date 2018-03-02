@@ -1,5 +1,6 @@
 import logging
 from queue import Queue
+from media.twitch_stream_processor import TwitchStreamProcessor
 from media.youtube_video_parser import YouTubeVideoParser
 from typing import Callable
 
@@ -30,7 +31,9 @@ class MediaProvider(object):
 
         logging.info("Frame queue has {} items".format(frame_queue.qsize()))
 
-    def process_twitch_stream(self, int, event_key: str, stream_url: str,
+    def process_twitch_stream(self, event_key: str, stream_url: str,
                               frame_callback: Callable):
-        self.twitch_processor.process_stream(event_key, stream_url,
-                                             frame_callback)
+        stream = self.twitch_processor.load_stream(stream_url)
+        if stream:
+            self.twitch_processor.process_stream(event_key, stream,
+                                                 frame_callback)

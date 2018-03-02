@@ -74,9 +74,11 @@ class CvProvider(object):
         return rows
 
     def process_live_frame(self, event_key, image):
+        year = int(event_key[:4])
+        livescore = self._livescore_for_year(year)
         try:
             s = time.time()
-            details = frc.read(image)
+            details = livescore.read(image)
             cv_time = time.time() - s
             logging.debug("CV latency: {}".format(cv_time))
             if year == 2018:

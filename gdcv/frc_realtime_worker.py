@@ -45,7 +45,7 @@ class FrcRealtimeWorker(object):
         logging.info("message processing complete")
         return False
 
-    def _process_stream(self, event_key: str, stream_utl: str):
+    def _process_stream(self, event_key: str, stream_url: str):
         self.media.process_twitch_stream(event_key, stream_url,
                                          self._live_frame_callback)
 
@@ -53,8 +53,11 @@ class FrcRealtimeWorker(object):
         if image is None:
             self.firebase.clear_data_in_firebase(event_key)
             return
-        details = self.cv_provider.process_live_frame(event_key)
-        self.firebase.push_data_to_firebase(details, event_key)
+        details = self.cv_provider.process_live_frame(event_key, image)
+        if not details:
+            logging.warning("Unable to parse score overlay")
+            return
+        self.firebase.push_data_to_firebase(details)
         with self.db.session() as session:
             session.add(details)
 

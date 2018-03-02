@@ -34,7 +34,7 @@ git clone https://github.com/andrewda/frc-livescore.git /frc-livescore
 cd /frc-livescore
 git checkout $livescore
 python3 setup.py bdist_wheel --universal
-find . -name '*.whl' -exec pip3 install --upgrade --force-reinstall {} \;
+find dist/ -name '*.whl' -exec pip3 install --upgrade --force-reinstall {} \;
 
 echo "Starting Cloud SQL proxy"
 /cloud_sql_proxy -instances=$instance_name=tcp:3306 -credential_file=$auth_path | tee $sql_log &

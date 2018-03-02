@@ -21,7 +21,7 @@ echo "Using db engine $db_engine"
 
 service mysql stop
 case "$db_engine" in
-  mysql)
+  local)
     echo "Starting local mysqld"
     mkdir -p /var/run/mysqld
     chown mysql:mysql /var/run/mysqld

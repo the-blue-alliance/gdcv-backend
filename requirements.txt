@@ -12,3 +12,4 @@ regex
 opencv-contrib-python
 wheel
 streamlink
+urlfetch
