@@ -65,7 +65,7 @@ class FrcRealtimeWorker(object):
             return 'ack'
 
         if not stream_url and event_info["webcasts"]:
-            twitch_streams = filter(lambda w: w.type == 'twitch')
+            twitch_streams = filter(lambda w: w.type == 'twitch', event_info["webcasts"])
             stream_url = next(["https://twitch.tv/{}".format(w.channel) for w in twitch_streams])
             logging.info("Using webcast {} from APIv3".format(stream_url))
 
