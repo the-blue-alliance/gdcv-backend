@@ -6,6 +6,7 @@ import time
 
 from apiv3_provider import ApiV3Provider
 from cv_provider import CvProvider
+from firebase_provider import FirebaseProvider
 from db_provider import DbProvider
 from frc_realtime_scoring_service import FrcRealtimeScoringService
 from frc_realtime_worker import FrcRealtimeWorker
@@ -51,6 +52,7 @@ def main():
     pubsub_topic = metadata_provider.get('pubsub-topic-id')
     pubsub_provider = PubSubProvider(project_id, pubsub_topic)
     cv_provider = CvProvider()
+    firebase_provider = FirebaseProvider(metadata_provider)
     db_provider = DbProvider(metadata_provider)
     db_provider.connect()
     db_provider.generateSchema()
@@ -59,7 +61,7 @@ def main():
         media_provider, apiv3_provider)
     cv_worker = FrcRealtimeWorker(metadata_provider, cv_provider,
                                   apiv3_provider, media_provider, db_provider,
-                                  pubsub_provider)
+                                  pubsub_provider, firebase_provider)
 
     # Kick off threads
     thrift_thread = threading.Thread(

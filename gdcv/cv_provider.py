@@ -2,6 +2,7 @@ import cv2
 import datetime
 import json
 import logging
+import time
 from db.match_state_2017 import MatchState2017
 from db.match_state_2018 import MatchState2018
 from livescore.LivescoreBase import NoOverlayFoundException
@@ -71,6 +72,19 @@ class CvProvider(object):
                 rows.append(state)
 
         return rows
+
+    def process_live_frame(self, event_key, image):
+        try:
+            s = time.time()
+            details = frc.read(image)
+            cv_time = time.time() - s
+            logging.debug("CV latency: {}".format(cv_time))
+            if year == 2018:
+                return self._get_state_2018(event_key, details.match_key,
+                                            time.time(), details)
+        except NoOverlayFoundException:
+            logging.warning("No overlay found")
+            return None
 
 
     def process_test_image(self):

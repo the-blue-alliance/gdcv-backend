@@ -1,6 +1,7 @@
 import logging
 from queue import Queue
 from media.youtube_video_parser import YouTubeVideoParser
+from typing import Callable
 
 class MediaProvider(object):
     '''
@@ -12,6 +13,7 @@ class MediaProvider(object):
 
     def __init__(self):
         self.yt_video_processor = YouTubeVideoParser()
+        self.twitch_processor = TwitchStreamProcessor()
 
     def fetch_youtube_video(self,
                             video_id: str,
@@ -27,3 +29,8 @@ class MediaProvider(object):
             video_id, video_path, frame_queue, save_every_n_frames)
 
         logging.info("Frame queue has {} items".format(frame_queue.qsize()))
+
+    def process_twitch_stream(self, int, event_key: str, stream_url: str,
+                              frame_callback: Callable):
+        self.twitch_processor.process_stream(event_key, stream_url,
+                                             frame_callback)

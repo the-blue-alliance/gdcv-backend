@@ -8,6 +8,11 @@ struct ProcessEventReq {
   1: required string eventKey;
 }
 
+struct ProcessStreamReq {
+  1: required string eventKey;
+  2: required string streamUrl;
+}
+
 struct EnqueueProcessResponse {
   1: required bool success,
   2: string message,
@@ -26,6 +31,8 @@ service FrcRealtimeScoringService {
   EnqueueProcessResponse enqueueSingleMatch(1: ProcessSingleMatchReq req);
 
   EnqueueProcessResponse enqueueEvent(1: ProcessEventReq req);
+
+  EnqueueProcessResponse enqueueStream(1: ProcessStreamReq req);
 
   void blockUntilNotProcessing();
 

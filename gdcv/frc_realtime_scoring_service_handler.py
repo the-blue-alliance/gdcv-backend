@@ -70,6 +70,18 @@ class FrcRealtimeScoringServiceHandler(object):
         resp.message = "request enqueued!"
         return resp
 
+    def enqueueStream(self, req):
+        message_data = {
+            'type': 'process_stream',
+            'event_key': req.eventKey,
+            'stream_url': req.streamUrl,
+        }
+        self.pubsub.push(json.dumps(message_data))
+        resp = self.thrift.EnqueueProcessResponse()
+        resp.success = True
+        resp.message = "request enqueued!"
+        return resp
+
     def blockUntilNotProcessing(self):
         while self.pubsub.current_message is not None:
             time.sleep(1)
