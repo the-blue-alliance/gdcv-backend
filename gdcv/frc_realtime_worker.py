@@ -1,6 +1,7 @@
 import datetime
 import json
 import logging
+import time
 from apiv3_provider import ApiV3Provider
 from cv_provider import CvProvider
 from db_provider import DbProvider
@@ -13,6 +14,9 @@ from typing import Tuple
 
 
 class FrcRealtimeWorker(object):
+
+    NO_WEBCAST_TIMEOUT_SEC = 60 * 5
+
     def __init__(self, metadata: MetadataProvider, cv_provider: CvProvider,
                  apiv3_provider: ApiV3Provider, media: MediaProvider,
                  db: DbProvider, pubsub: PubSubProvider, firebase: FirebaseProvider):
@@ -29,9 +33,9 @@ class FrcRealtimeWorker(object):
         message = json.loads(message_data)
         message_type = message["type"]
         logging.info("Processing message type: {}".format(message_type))
-        should_ack = True
+        action = 'ack'
         if message_type == 'exit':
-            return True, should_ack
+            return True, action
         elif message_type == 'test':
             logging.info("Got test message: {}".format(message["message"]))
         elif message_type == 'process_match':
@@ -45,11 +49,11 @@ class FrcRealtimeWorker(object):
             stream_url = message.get("stream_url")
             skip_date_check = message.get("skip_date_check", False)
             event_key = message["event_key"]
-            should_ack = self._process_stream(event_key, stream_url, skip_date_check)
+            action = self._process_stream(event_key, stream_url, skip_date_check)
         logging.info("message processing complete")
-        return False, should_ack
+        return False, action
 
-    def _process_stream(self, event_key: str, stream_url: str=None, skip_date_check: bool):
+    def _process_stream(self, event_key: str, stream_url: str=None, skip_date_check: bool=False):
         logging.info("Processing stream for event {}".format(event_key))
         event_info = self.apiv3.fetch_event_details(event_key)
         event_end = datetime.datetime.strptime(event_info['end_date'], "%Y-%m-%d")
@@ -58,7 +62,7 @@ class FrcRealtimeWorker(object):
         if not skip_date_check and now > event_end:
             # Event is over, we can now ack the message
             logging.info("Event {} is over, acking message")
-            return True
+            return 'ack'
 
         if not stream_url and event_info["webcasts"]:
             twitch_streams = filter(lambda w: w.type == 'twitch')
@@ -66,25 +70,31 @@ class FrcRealtimeWorker(object):
             logging.info("Using webcast {} from APIv3".format(stream_url))
 
         if not stream_url:
-            logging.warning("No webcasts found for event {}".format(event_key))
-            return False
-        self.media.process_twitch_stream(event_key, stream_url,
-                                         self._live_frame_callback)
+            logging.warning(
+                "No webcasts found for event {}, sleeping for {} seconds".
+                format(event_key, self.NO_WEBCAST_TIMEOUT_SEC))
+            time.sleep(self.NO_WEBCAST_TIMEOUT_SEC)
+            return 'ack'
 
-        # Don't ack this message until the event is over
-        return False
+        # If the twitch worker times out, it will reurn 'ack' or 'nack'
+        return self.media.process_twitch_stream(event_key, stream_url,
+                                                self._live_frame_callback)
+
 
     def _live_frame_callback(self, event_key, image):
         if image is None:
             self.firebase.clear_data_in_firebase(event_key)
-            return
+            return None
         details = self.cv_provider.process_live_frame(event_key, image)
         if not details:
             logging.warning("Unable to parse score overlay")
-            return
+            return None
         self.firebase.push_data_to_firebase(details)
         with self.db.session() as session:
             session.add(details)
+
+        # Allow the calling code to make decisions based on match state
+        return details.mode
 
     def _process_match_video(self, match_key: str, video_id: str=None):
         logging.info("Loading data for match {}".format(match_key))

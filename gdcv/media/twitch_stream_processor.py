@@ -17,6 +17,7 @@ from streamlink.stream import Stream
 
 class TwitchStreamProcessor(object):
 
+    TIMEOUT_SEC = 60 * 10  # About one match cycle (plus margin for error)
     FPS = 1
 
     def __init__(self):
@@ -59,6 +60,7 @@ class TwitchStreamProcessor(object):
             w = threading.Thread(target=image_worker)
             w.start()
 
+            start_process_time = time.time()
             last_process_time = time.time()
             while True:
                 cur_time = time.time()
@@ -77,7 +79,21 @@ class TwitchStreamProcessor(object):
                         logging.warning("Unable to read image from stream queue")
                         continue
                     image = np.fromstring(raw_image, dtype='uint8').reshape((720,1280,3))
-                    frame_callback(event_key, image)
+                    match_state = frame_callback(event_key, image)
+                    runtime = time.time() - start_process_time
+                    timeout = runtime > self.TIMEOUT_SEC \
+                        and match_state != 'auto' \
+                        and match_state != 'teleop'
+
+                    # Stop processing after one match or if we go long enough
+                    # without seeing another match start
+                    if match_state == 'post_match' or timeout:
+                        logging.info(
+                            "Stopping processing. Running for {} seconds. Current state is {}".
+                            format(runtime, match_state))
+                        stop = True
+                        w.join()
+                        return 'nack'
         except:
             logging.exception("Error processing stream")
             stop = True

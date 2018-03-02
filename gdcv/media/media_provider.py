@@ -35,5 +35,7 @@ class MediaProvider(object):
                               frame_callback: Callable):
         stream = self.twitch_processor.load_stream(stream_url)
         if stream:
-            self.twitch_processor.process_stream(event_key, stream,
-                                                 frame_callback)
+            return self.twitch_processor.process_stream(event_key, stream,
+                                                        frame_callback)
+        # No stream found, put this event back in queue
+        return 'ack'
