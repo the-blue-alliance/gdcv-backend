@@ -50,7 +50,7 @@ class TwitchStreamProcessor(object):
                 '-i', stream.url,
                 '-an',   # disable audio
                 '-f', 'image2pipe',
-                '-vf', 'fps={}'.format(FPS),
+                '-vf', 'fps={}'.format(self.FPS),
                 '-pix_fmt', 'bgr24',
                 '-vcodec', 'rawvideo', '-'],
                 stdout=sp.PIPE, bufsize=8**10)
@@ -77,7 +77,7 @@ class TwitchStreamProcessor(object):
                     if qsize > 0:
                         data = data_queue.get()
                         frame_start = time.time()
-                        image = np.fromstring(data, dtype='uint8').reshape((720, 1280, 3)))
+                        image = np.fromstring(data, dtype='uint8').reshape((720, 1280, 3))
                         if image is not None:
                             try:
                                 match_state = frame_callback(event_key, image)
