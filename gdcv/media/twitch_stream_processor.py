@@ -76,6 +76,7 @@ class TwitchStreamProcessor(object):
                     logging.info("Queue length: {}".format(qsize))
                     while data_queue.qsize() > 5:
                            data_queue.get()
+                           logging.info("Decreasing queue size: {}".format(data_queue.qsize()))
                     if qsize > 0:
                         data = data_queue.get()
                         frame_start = time.time()
