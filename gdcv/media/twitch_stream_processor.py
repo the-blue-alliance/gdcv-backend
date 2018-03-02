@@ -64,6 +64,7 @@ class TwitchStreamProcessor(object):
             w = threading.Thread(target=worker)
             w.start()
 
+            seen_match = False
             start_process_time = time.time()
             last_process_time = time.time()
             while True:
@@ -75,8 +76,8 @@ class TwitchStreamProcessor(object):
                     qsize = data_queue.qsize()
                     logging.info("Queue length: {}".format(qsize))
                     while data_queue.qsize() > 5:
-                           data_queue.get()
-                           logging.info("Decreasing queue size: {}".format(data_queue.qsize()))
+                        data_queue.get()
+                        logging.info("Decreasing queue size: {}".format(data_queue.qsize()))
                     if qsize > 0:
                         data = data_queue.get()
                         frame_start = time.time()
@@ -88,6 +89,7 @@ class TwitchStreamProcessor(object):
                                 logging.error("Exception processing frame")
                                 match_state = None
 
+                        seen_match = seen_match or match_state == 'auto' or match_state == 'teleop'
                         runtime = time.time() - start_process_time
                         frame_latency = time.time() - frame_start
                         logging.info("Frame processed in {} seconds".format(frame_latency))
