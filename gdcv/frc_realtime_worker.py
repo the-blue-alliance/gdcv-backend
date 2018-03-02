@@ -40,7 +40,7 @@ class FrcRealtimeWorker(object):
             logging.info("Got test message: {}".format(message["message"]))
         elif message_type == 'process_match':
             match_key = message["match_key"]
-            video_id = message["video_id"]
+            video_id = message.get("video_id")
             self._process_match_video(match_key, video_id)
         elif message_type == 'process_event':
             event_key = message["event_key"]
