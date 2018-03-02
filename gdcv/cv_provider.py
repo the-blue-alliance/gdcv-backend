@@ -81,9 +81,10 @@ class CvProvider(object):
             details = livescore.read(image)
             cv_time = time.time() - s
             logging.debug("CV latency: {}".format(cv_time))
-            if year == 2018:
+            if year == 2018 and details:
+                wall_time = time.time() * 1000  # in milliseconds
                 return self._get_state_2018(event_key, details.match_key,
-                                            time.time(), details)
+                                            wall_time, details)
         except NoOverlayFoundException:
             logging.warning("No overlay found")
             return None

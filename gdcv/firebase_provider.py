@@ -12,8 +12,8 @@ class FirebaseProvider(object):
 
     def __init__(self, metadata: MetadataProvider):
         self.last_data = {}
-        self.project_id = metadata.get('project-id')
-        self.firebase_secret = metadata.get('firebase_secret')
+        self.project_id = metadata.get('project-id').decode('utf-8')
+        self.firebase_secret = metadata.get('firebase_secret').decode('utf-8')
 
     def clear_data_in_firebase(self, event_key):
         firebase_path = self.URLKEY.format(event_key)
@@ -61,7 +61,7 @@ class FirebaseProvider(object):
 
         updated_data = {}
         for key, value in data.items():
-            if last_data.get(key) != value:
+            if self.last_data.get(key) != value:
                 updated_data[key] = value
         self.last_data = data
 
@@ -69,6 +69,7 @@ class FirebaseProvider(object):
         firebase_path = self.URLKEY.format(details.event_key)
         url = self.URLFORMAT.format(self.project_id, firebase_path,
                                     self.firebase_secret)
+        logging.info("Pushing to firebase: {}".format(url))
         result = urlfetch.patch(url, data=updated_data_json)
         if result.status_code not in {200, 204}:
             logging.warning(

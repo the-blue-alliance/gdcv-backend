@@ -78,9 +78,12 @@ class TwitchStreamProcessor(object):
                     if not raw_image:
                         logging.warning("Unable to read image from stream queue")
                         continue
+                    frame_start = time.time()
                     image = np.fromstring(raw_image, dtype='uint8').reshape((720,1280,3))
                     match_state = frame_callback(event_key, image)
                     runtime = time.time() - start_process_time
+                    frame_latency = time.time() - frame_start
+                    logging.info("Frame processed in {} seconds".format(frame_latency))
                     timeout = runtime > self.TIMEOUT_SEC \
                         and match_state != 'auto' \
                         and match_state != 'teleop'

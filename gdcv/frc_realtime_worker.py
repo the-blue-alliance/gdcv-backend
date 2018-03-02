@@ -90,11 +90,12 @@ class FrcRealtimeWorker(object):
             logging.warning("Unable to parse score overlay")
             return None
         self.firebase.push_data_to_firebase(details)
+        match_mode = details.mode
         with self.db.session() as session:
             session.add(details)
 
         # Allow the calling code to make decisions based on match state
-        return details.mode
+        return match_mode
 
     def _process_match_video(self, match_key: str, video_id: str=None):
         logging.info("Loading data for match {}".format(match_key))

@@ -25,7 +25,9 @@ case "$db_engine" in
     echo "Starting local mysqld"
     mkdir -p /var/run/mysqld
     chown mysql:mysql /var/run/mysqld
-    mysqld_safe
+    while true; do
+      mysqld_safe
+    done
     ;;
 
   cloud_sql)
