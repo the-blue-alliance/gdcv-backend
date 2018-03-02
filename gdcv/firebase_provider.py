@@ -72,6 +72,7 @@ class FirebaseProvider(object):
         logging.info("Pushing to firebase: {}".format(url))
         result = urlfetch.patch(url, data=updated_data_json)
         if result.status_code not in {200, 204}:
+            self.last_data = {}
             logging.warning(
                 "Error with PATCH data to Firebase: {}; {}. ERROR {}: {}".
                 format(url, updated_data_json, result.status_code,
