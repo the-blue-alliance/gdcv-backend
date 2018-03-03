@@ -62,14 +62,22 @@ def main():
         print("Need to create {} VMs and delete {} VMs".format(len(vms_to_create), len(vms_to_delete)))
         for event_key in vms_to_create:
             event = live_events[event_key]
-            stream = next(iter([w for w in event["webcasts"] if w["type"] == 'twitch']), None)
-            if not stream:
-                print("Event {} does not have a twitch stream, skipping".format(event_key))
+            twitch_stream = next(iter([w for w in event["webcasts"] if w["type"] == 'twitch']), None)
+            livestream = next(iter([w for w in event["webcasts"] if w["type"] == 'livestream']), None)
+            stream_url = None
+            if twitch_stream:
+                stream_url = 'https://twitch.tv/{}'.format(twitch_stream["channel"])
+            elif livestream:
+                stream_url = 'https://livestream.com/accounts/{}/events/{}'.format(
+                    livestream["channel"], livestream["file"])
+            if not stream_url:
+                print("Event {} does not have a supported stream, skipping".format(event_key))
                 continue
+            print("Using webcast {} for {}".format(stream_url, event_key))
             startup_message = {
                 'type': 'process_stream',
                 'event_key': event_key,
-                'stream_url': 'https://twitch.tv/{}'.format(stream["channel"])
+                'stream_url': stream_url,
             }
             # Can't figure out to do this as simply with the API
             print("Creating VM with startup: {}".format(json.dumps(startup_message)))

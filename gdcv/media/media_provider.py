@@ -36,9 +36,9 @@ class MediaProvider(object):
 
     def process_twitch_stream(self, event_key: str, stream_url: str,
                               frame_callback: Callable):
-        stream = self.twitch_processor.load_stream(stream_url)
+        stream, resolution = self.twitch_processor.load_stream(stream_url)
         if stream:
-            return self.twitch_processor.process_stream(event_key, stream,
+            return self.twitch_processor.process_stream(event_key, stream, resolution,
                                                         frame_callback)
         # No stream found, put this event back in queue
         logging.warning(
