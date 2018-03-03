@@ -51,9 +51,10 @@ class FrcRealtimeWorker(object):
                 skip_date_check = message.get("skip_date_check", False)
                 event_key = message["event_key"]
                 action = self._process_stream(event_key, stream_url, skip_date_check)
+            self.pubsub.completeProcessing(action)
             logging.info("message processing complete")
         except Exception:
-            logging.error("Exception processing message")
+            logging.exception("Exception processing message")
 
         return False, action
 
