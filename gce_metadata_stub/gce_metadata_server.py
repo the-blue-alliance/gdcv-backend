@@ -273,6 +273,8 @@ def getCustomMetadata(k):
       with open('/gdcv/dev_metadata.json', 'r') as f:
           custom_attributes = json.load(f)
       v = custom_attributes[k]
+      if isinstance(v, dict):
+          v = json.dumps(v)
     except KeyError:
         abort(404)
     return v

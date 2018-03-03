@@ -100,7 +100,7 @@ class TwitchStreamProcessor(object):
 
                         # Stop processing after one match or if we go long enough
                         # without seeing another match start
-                        if match_state == 'post_match' or timeout:
+                        if (seen_match and match_state == 'post_match') or timeout:
                             logging.info(
                                 "Stopping processing. Running for {} seconds. Current state is {}".
                                 format(runtime, match_state))
