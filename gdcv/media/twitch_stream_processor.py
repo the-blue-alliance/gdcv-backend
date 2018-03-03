@@ -95,6 +95,7 @@ class TwitchStreamProcessor(object):
             w.start()
 
             seen_match = False
+            consecutive_no_frames = 0
             start_process_time = time.time()
             last_process_time = time.time()
             while True:
@@ -111,6 +112,14 @@ class TwitchStreamProcessor(object):
                     stop = True
                     time.sleep(self.WORKER_RESTART_SEC)
                     break
+                if consecutive_no_frames >= 2 * self.MAX_NO_FRAMES:
+                    logging.warning(
+                        "No frames read from queue in {} interations. Reconnecting in {} seconds".
+                        format(2 * self.MAX_NO_FRAMES,
+                               self.WORKER_RESTART_SEC))
+                    stop = True
+                    time.sleep(self.WORKER_RESTART_SEC)
+                    break
                 cur_time = time.time()
                 if cur_time >= last_process_time + 1.0 / self.FPS:
                     error = cur_time - last_process_time
@@ -121,6 +130,8 @@ class TwitchStreamProcessor(object):
                     while data_queue.qsize() > 5:
                         data_queue.get()
                         logging.info("Decreasing queue size: {}".format(data_queue.qsize()))
+                    if qsize == 0:
+                        consecutive_no_frames += 1
                     if qsize > 0:
                         consecutive_no_frames = 0
                         data = data_queue.get()
