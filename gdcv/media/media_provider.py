@@ -12,6 +12,8 @@ class MediaProvider(object):
     This is done to keep things simple when passing objects around
     '''
 
+    NO_STREAM_FOUND_DELAY = 30
+
     def __init__(self):
         self.yt_video_processor = YouTubeVideoParser()
         self.twitch_processor = TwitchStreamProcessor()
@@ -38,4 +40,8 @@ class MediaProvider(object):
             return self.twitch_processor.process_stream(event_key, stream,
                                                         frame_callback)
         # No stream found, put this event back in queue
-        return 'ack'
+        logging.warning(
+            "No stream found, sleeping for {} seconds and trying again".format(
+                self.NO_STREAM_FOUND_DELAY))
+        time.sleep(self.NO_STREAM_FOUND_DELAY)
+        return 'nack'
