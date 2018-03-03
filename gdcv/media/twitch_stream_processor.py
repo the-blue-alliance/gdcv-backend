@@ -51,6 +51,7 @@ class TwitchStreamProcessor(object):
 
         if stream:
             logging.info("Got stream! {}".format(stream))
+            logging.info("Using resolution {}".format(resolution))
             return stream, resolution
         else:
             logging.warning("No stream available")
@@ -70,26 +71,30 @@ class TwitchStreamProcessor(object):
                 '-vf', 'fps={}'.format(self.FPS),
                 '-pix_fmt', 'bgr24',
                 '-vcodec', 'rawvideo', '-'],
-                stdout=sp.PIPE, stderr=sp.PIPE, bufsize=8**10)
+                stdout=sp.PIPE, bufsize=8**10)
 
             data_queue = Queue()
             frame_size = resolution[0] * resolution[1] * resolution[2]
             def worker():
+                consecutive_no_data = 0
                 while not stop:
-                    stderr = pipe.stderr.readlines()
-                    for line in stderr:
-                        logging.warning("Stderr: {}".format(line))
-                        if 'Connection timed out' in str(line):
-                            logging.warning("Connection to timed out. Retrying")
-                            return
                     data = pipe.stdout.read(frame_size)
                     if data:
+                        consecutive_no_data = 0
                         data_queue.put(data)
+                    else:
+                        logging.warning("No data read from pipe")
+                        consecutive_no_data += 1
+                    if consecutive_no_data >= self.MAX_NO_FRAMES:
+                        logging.warning(
+                            "No data found {} times, disconnecting".format(
+                                consecutive_no_data))
+                        return
+
             w = threading.Thread(target=worker)
             w.start()
 
             seen_match = False
-            consecutive_no_frames = 0
             start_process_time = time.time()
             last_process_time = time.time()
             while True:
@@ -97,6 +102,13 @@ class TwitchStreamProcessor(object):
                     logging.warning(
                         "Worker thread died, restarting connection in {} seconds".
                         format(self.WORKER_RESTART_SEC))
+                    time.sleep(self.WORKER_RESTART_SEC)
+                    break
+                if pipe.returncode:
+                    logging.warning(
+                        "ffmpeg process exited with {}, restarting in {} seconds".
+                        format(pipe.returncode, self.WORKER_RESTART_SEC))
+                    stop = True
                     time.sleep(self.WORKER_RESTART_SEC)
                     break
                 cur_time = time.time()
@@ -109,16 +121,6 @@ class TwitchStreamProcessor(object):
                     while data_queue.qsize() > 5:
                         data_queue.get()
                         logging.info("Decreasing queue size: {}".format(data_queue.qsize()))
-                    if qsize == 0:
-                        consecutive_no_frames += 1
-
-                    if consecutive_no_frames >= self.MAX_NO_FRAMES:
-                        logging.warning(
-                            "No frames found {} times in a row, reconnecting in {} seconds".
-                            format(consecutive_no_frames,
-                                   self.WORKER_RESTART_SEC))
-                        stop = True
-                        break
                     if qsize > 0:
                         consecutive_no_frames = 0
                         data = data_queue.get()
@@ -150,6 +152,7 @@ class TwitchStreamProcessor(object):
                             break
 
             # Loop is done, wait for worker thread to stop and backoff/retry
+            pipe.kill()
             w.join()
             return 'nack'
         except:
