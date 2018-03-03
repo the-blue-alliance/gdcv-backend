@@ -264,9 +264,9 @@ def getNumericProjectID():
        return __getStaticMetadataValue(GOOGLE_NUMERIC_PROJECT_ID)
 
 # return arbitary user-defined key-value pairs
-@app.route('/computeMetadata/v1/project/attributes/<string:k>', methods = ['GET'])
-def getCustomMetadata(k):
-    logging.info('Requesting custom_metadata: ' +  k )
+@app.route('/computeMetadata/v1/<string:t>/attributes/<string:k>', methods = ['GET'])
+def getCustomMetadata(t, k):
+    logging.info('Requesting {} custom_metadata: {}'.format(t, k))
     resp = Response()
     try:
       resp.headers['Content-Type'] ='application/text'

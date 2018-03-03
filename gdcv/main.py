@@ -52,7 +52,7 @@ def main():
                                   pubsub_provider, firebase_provider)
 
     # GDCV may have been started with a specific message
-    starting_message = metadata_provider.get('starting_message', None)
+    starting_message = metadata_provider.getInstance('starting_message', None)
     if starting_message:
         logging.info("Using startup message {}".format(starting_message))
         pubsub_provider.push(starting_message)
