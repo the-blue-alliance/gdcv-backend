@@ -85,12 +85,16 @@ def main():
             }
             # Can't figure out to do this as simply with the API
             print("Creating VM with startup: {}".format(json.dumps(startup_message)))
+            shutdown_script="""
+            #! /bin/bash
+            cat /var/run/gdcv | xargs kill
+            """
             subprocess.run([
                 'gcloud', 'beta', 'compute', 'instances',
                 'create-with-container', 'gdcv-{}'.format(event_key),
                 '--container-image', 'gcr.io/tbatv-prod-hrd/gdcv-prod:latest',
                 '--zone', args.gce_zone,
-                '--metadata', '^~^starting_message={}'.format(json.dumps(startup_message))
+                '--metadata', '^~^starting_message={}~shutdown-script={}'.format(json.dumps(startup_message), shutdown_script)
             ])
 
         compute = build('compute', 'v1')
