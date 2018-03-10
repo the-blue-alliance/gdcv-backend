@@ -62,14 +62,18 @@ def main():
         print("Need to create {} VMs and delete {} VMs".format(len(vms_to_create), len(vms_to_delete)))
         for event_key in vms_to_create:
             event = live_events[event_key]
+            now = datetime.datetime.now().strftime("%Y-%m-%d")
             twitch_stream = next(iter([w for w in event["webcasts"] if w["type"] == 'twitch']), None)
             livestream = next(iter([w for w in event["webcasts"] if w["type"] == 'livestream']), None)
+            youtube_stream = next(iter([w for w in event["webcasts"] if w["type"] == 'youtube'] and w.get("date", now) == now), None)
             stream_url = None
             if twitch_stream:
                 stream_url = 'https://twitch.tv/{}'.format(twitch_stream["channel"])
             elif livestream:
                 stream_url = 'https://livestream.com/accounts/{}/events/{}'.format(
                     livestream["channel"], livestream["file"])
+            elif youtube_stream:
+                stream_url = 'https://www.youtube.com/watch?v={}'.format(youtube_stream["channel"])
             if not stream_url:
                 print("Event {} does not have a supported stream, skipping".format(event_key))
                 continue

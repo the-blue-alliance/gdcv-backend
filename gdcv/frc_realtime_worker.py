@@ -47,16 +47,41 @@ class FrcRealtimeWorker(object):
                 event_key = message["event_key"]
                 self._process_event_videos(event_key)
             elif message_type == 'process_stream':
-                stream_url = message.get("stream_url")
                 skip_date_check = message.get("skip_date_check", False)
                 event_key = message["event_key"]
-                action = self._process_stream(event_key, stream_url, skip_date_check)
+                stream_url = self._get_stream_url(event_key)
+                if not stream_url:
+                    logging.warning("No supported streams found...")
+                    action = 'nack'
+                else:
+                    logging.info("Using stream {}".format(stream_url))
+                    action = self._process_stream(event_key, stream_url, skip_date_check)
             self.pubsub.completeProcessing(action)
             logging.info("message processing complete")
         except Exception:
             logging.exception("Exception processing message")
 
         return False, action
+
+    def _get_stream_url(self, event_key: str):
+        logging.info("Loading event data for {}".format(event_key))
+        event = self.apiv3.fetch_event_details(event_key)
+        if not event:
+            logging.warning("Unable to load event")
+            return None
+        now = datetime.datetime.now().strftime("%Y-%m-%d")
+        twitch_stream = next(iter([w for w in webcasts if w["type"] == 'twitch']), None)
+        livestream = next(iter([w for w in webcasts if w["type"] == 'livestream']), None)
+        youtube_stream = next(iter([w for w in webcasts if w["type"] == 'youtube'] and w.get("date", now) == now), None)
+        stream_url = None
+        if twitch_stream:
+            return 'https://twitch.tv/{}'.format(twitch_stream["channel"])
+        elif livestream:
+            return 'https://livestream.com/accounts/{}/events/{}'.format(
+                livestream["channel"], livestream["file"])
+        elif youtube_stream:
+            return 'https://www.youtube.com/watch?v={}'.format(youtube_stream["channel"])
+        return None
 
     def _process_stream(self, event_key: str, stream_url: str=None, skip_date_check: bool=False):
         logging.info("Processing stream for event {}".format(event_key))
