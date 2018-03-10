@@ -73,7 +73,7 @@ class FrcRealtimeWorker(object):
         now = datetime.datetime.now().strftime("%Y-%m-%d")
         twitch_stream = next(iter([w for w in webcasts if w["type"] == 'twitch']), None)
         livestream = next(iter([w for w in webcasts if w["type"] == 'livestream']), None)
-        youtube_stream = next(iter([w for w in webcasts if w["type"] == 'youtube'] and w.get("date", now) == now), None)
+        youtube_stream = next(iter([w for w in webcasts if w["type"] == 'youtube' and w.get("date", now) == now]), None)
         stream_url = None
         if twitch_stream:
             return 'https://twitch.tv/{}'.format(twitch_stream["channel"])
