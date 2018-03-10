@@ -1,6 +1,7 @@
 import datetime
 import json
 import logging
+import os
 import threading
 import time
 
@@ -56,6 +57,11 @@ def main():
     if starting_message:
         logging.info("Using startup message {}".format(starting_message))
         pubsub_provider.push(starting_message)
+
+    # Write a PID file
+    with open('/var/run/gdcv', 'w') as f:
+        pid = os.getpid()
+        f.write (str(pid))
 
     # Kick off threads
     thrift_thread = threading.Thread(

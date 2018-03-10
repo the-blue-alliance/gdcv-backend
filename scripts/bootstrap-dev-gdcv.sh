@@ -12,6 +12,9 @@ pip3 install -r ./requirements.txt --upgrade
 
 find bin/ -name '*.whl' -exec pip3 install --upgrade --force-reinstall {} \;
 
+# Clear any existing PID file
+rm -f /var/run/gdcv
+
 session=gdcv
 tmux start-server
 

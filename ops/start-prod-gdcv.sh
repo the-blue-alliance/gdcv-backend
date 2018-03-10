@@ -36,6 +36,9 @@ git checkout $livescore
 python3 setup.py bdist_wheel --universal
 find dist/ -name '*.whl' -exec pip3 install --upgrade --force-reinstall {} \;
 
+echo "Clearing any old PID file"
+rm -f /var/run/gdcv
+
 echo "Starting Cloud SQL proxy"
 /cloud_sql_proxy -instances=$instance_name=tcp:3306 -credential_file=$auth_path | tee $sql_log &
 
