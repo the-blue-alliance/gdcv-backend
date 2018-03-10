@@ -120,7 +120,8 @@ class FrcRealtimeWorker(object):
         if not details:
             logging.warning("Unable to parse score overlay")
             return None
-        self.firebase.push_data_to_firebase(details)
+        if self.metadata.get('push_to_firebase', 'true') == 'true':
+            self.firebase.push_data_to_firebase(details)
         match_mode = details.mode
         with self.db.session() as session:
             session.add(details)
