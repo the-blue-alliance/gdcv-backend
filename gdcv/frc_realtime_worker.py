@@ -69,6 +69,7 @@ class FrcRealtimeWorker(object):
         if not event:
             logging.warning("Unable to load event")
             return None
+        webcasts = event["webcasts"]
         now = datetime.datetime.now().strftime("%Y-%m-%d")
         twitch_stream = next(iter([w for w in webcasts if w["type"] == 'twitch']), None)
         livestream = next(iter([w for w in webcasts if w["type"] == 'livestream']), None)
