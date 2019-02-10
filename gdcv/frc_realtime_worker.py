@@ -92,7 +92,7 @@ class FrcRealtimeWorker(object):
         now = datetime.datetime.now()
         if not skip_date_check and now > event_end:
             # Event is over, we can now ack the message
-            logging.info("Event {} is over, acking message")
+            logging.info("Event {} is over, acking message".format(event_key))
             return 'ack'
 
         if not stream_url and event_info["webcasts"]:

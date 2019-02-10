@@ -1,6 +1,8 @@
 #! /bin/bash
 set -e
 
+GCLOUD=/root/google-cloud-sdk/bin/gcloud
+
 echo "Current python version:"
 python3 --version
 
@@ -11,6 +13,8 @@ echo "Updating gdcv dependencies"
 pip3 install -r ./requirements.txt --upgrade
 
 find bin/ -name '*.whl' -exec pip3 install --upgrade --force-reinstall {} \;
+
+$GCLOUD components install --quiet pubsub-emulator
 
 # Clear any existing PID file
 rm -f /var/run/gdcv
@@ -33,8 +37,8 @@ rm -f $sql_log
 echo "Starting GDCV server in new tmux session"
 tmux new-session -d -s $session
 tmux new-window -t "$session:1" -n cv-worker "./scripts/shim-dev-worker.sh 2>&1 | tee $worker_log"
-tmux new-window -t "$session:2" -n gce-metadata "python3 ./gce_metadata_stub/gce_metadata_server.py -p 80 2>&1 | tee $metadata_log; read"
-tmux new-window -t "$session:3" -n pubsub "gcloud beta emulators pubsub start 2>&1 | tee $pubsub_log; read"
+tmux new-window -t "$session:2" -n gce-metadata "PATH=$PATH:/root/google-cloud-sdk/bin; python3 ./gce_metadata_stub/gce_metadata_server.py -p 80 2>&1 | tee $metadata_log; read"
+tmux new-window -t "$session:3" -n pubsub "$GCLOUD beta emulators pubsub start 2>&1 | tee $pubsub_log; read"
 tmux new-window -t "$session:4" -n sql "./scripts/start-mysql.sh 2>&1 | tee $sql_log; read"
 tmux select-window -t "$session:1"
 

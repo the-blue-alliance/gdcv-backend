@@ -100,8 +100,8 @@ class FrcRealtimeScoringServiceHandler(object):
             'type': 'test',
             'message': message,
         }
-        result = self.pubsub.push(json.dumps(message))
-        return result.result()
+        self.pubsub.push(json.dumps(message))
+        return 'Message enqueued'
 
     def insertTestRow(self, text):
         logging.debug("insertTestRow({}) called".format(text))

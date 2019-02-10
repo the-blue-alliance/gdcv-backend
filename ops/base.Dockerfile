@@ -20,20 +20,17 @@ RUN apt-get update && apt-get install -y \
   build-essential \
   libsm6 \
   cmake git pkg-config libavcodec-dev libavformat-dev libswscale-dev ffmpeg \
-  python3-numpy libtbb2 libtbb-dev libjpeg-dev libpng-dev libtiff-dev libdc1394-22-dev
+  python3-numpy libtbb2 libtbb-dev libjpeg-dev libpng-dev libtiff-dev libdc1394-22-dev \
+  libsm6 libxext6
 
 # Add gcloud repository and Cloud SDK dependencies
 RUN apt-get update && apt-get install -y apt-transport-https curl
 RUN echo "deb https://packages.cloud.google.com/apt cloud-sdk-xenial main" | sudo tee -a /etc/apt/sources.list.d/google-cloud-sdk.list
 RUN curl https://packages.cloud.google.com/apt/doc/apt-key.gpg | sudo apt-key add -
-RUN apt-get update && apt-get install -y \
-  google-cloud-sdk
+RUN apt-get update && apt-get install -y google-cloud-sdk
 
 # Set up frc-livescore dependencies
 RUN apt-get update && apt-get install -y tesseract-ocr imagemagick locales unzip
-#ENV LC_ALL C
-#COPY ./build-opencv.sh /build-opencv.sh
-#RUN /build-opencv.sh 3.4.0
 
 # Install mysql python library
 RUN apt-get install -y libmysqlclient-dev mysql-client

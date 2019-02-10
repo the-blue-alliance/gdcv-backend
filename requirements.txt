@@ -9,7 +9,8 @@ livescore
 pytube
 livestreamer
 regex
-opencv-contrib-python
+opencv-python==3.4.0.12
+opencv-contrib-python===3.4.0.12
 wheel
 streamlink
 urlfetch

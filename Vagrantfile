@@ -51,7 +51,7 @@ Vagrant.configure("2") do |config|
   # Before we start the dev container, make sure we have the latest base image
   # pulled from Google
   config.trigger.before [:up] do |trigger|
-    trigger.info = "Pulling latest base container from Google"
-    trigger.run = {inline: "gcloud docker -- pull gcr.io/tbatv-prod-hrd/gdcv-base:latest"}
+    trigger.info = "Building base Docker image"
+    trigger.run = {inline: "docker build -t gdcv-base:latest -f ops/base.Dockerfile ."}
   end
 end
